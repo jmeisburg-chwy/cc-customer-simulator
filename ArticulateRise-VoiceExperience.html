@@ -1,0 +1,2002 @@
+<!--
+REQUIRED: Update the DEFAULT_SCENARIO_ID below.
+
+This value must exactly match the scenario ID configured in the AWS Lambda function.
+
+To find it:
+1. Open your Lambda function (scenarios endpoint)
+2. Locate the scenario you want to use
+3. Copy the "id" value
+
+Example:
+const DEFAULT_SCENARIO_ID = "on_time_delivery_no_partial_refund_needed";
+
+Then replace the value below with your scenario ID.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Chewy Customer Simulator - Voice Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --chewy-blue: #1C49C2;
+      --chewy-blue-600: #2661CE;
+      --border: #E3E8EF;
+      --panel: #D7DDEA;
+      --muted: #6b7280;
+
+      --card: #F3F6FA;
+      --card-border: #E6ECF5;
+      --card-inner: #fff;
+      --page: #e8edf9;
+
+      --guide-blue: #214FCF;
+      --guide-blue-dark: #173da7;
+
+      --accordion-bg: #f3f4f6;
+      --accordion-border: #e5e7eb;
+      --instructions-bg: #f3f6fc;
+      --instructions-border: #d9e2f2;
+
+      --error: #b42318;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: transparent;
+    }
+
+    .page,
+    .page * {
+      font-family: "Gordita", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #000;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+
+    .page {
+      width: 100%;
+      background: transparent;
+      padding: 0;
+    }
+
+    .experience-card {
+      width: 100%;
+      background: var(--accordion-bg);
+      border: 1px solid var(--accordion-border);
+      border-radius: 34px;
+      overflow: hidden;
+    }
+
+    .experience-card details {
+      width: 100%;
+    }
+
+    .experience-card summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: var(--accordion-bg);
+    }
+
+    .experience-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .experience-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .experience-title {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #13294b;
+    }
+
+    .experience-subtitle {
+      margin: 10px 0 0 0;
+      font-size: 17px;
+      line-height: 1.45;
+      color: #3f556f;
+    }
+
+    .experience-pill {
+      flex-shrink: 0;
+      min-width: 315px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 28px;
+      border-radius: 999px;
+      background: var(--chewy-blue);
+      color: #fff;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+      transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+      border: 2px solid var(--chewy-blue);
+    }
+
+    .experience-card summary:hover .experience-pill {
+      background: var(--chewy-blue-600);
+      border-color: var(--chewy-blue-600);
+    }
+
+    .experience-card details[open] .experience-pill {
+      background: #fff;
+      color: var(--chewy-blue);
+      border-color: var(--chewy-blue);
+    }
+
+    .experience-body {
+      display: none;
+      padding: 0 0 28px 0;
+      background: transparent;
+    }
+
+    .experience-card details[open] .experience-body {
+      display: block;
+    }
+
+    .instructions-wrap {
+      padding: 0 20px 24px 20px;
+    }
+
+    .instructions-card {
+      background: var(--instructions-bg);
+      border: 1px solid var(--instructions-border);
+      border-radius: 2px;
+      padding: 26px 34px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .instructions-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .instructions-icon {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .instructions-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .instructions-list {
+      margin: 0 0 0 48px;
+      padding-left: 18px;
+    }
+
+    .instructions-list li {
+      margin-bottom: 18px;
+      font-size: 17px;
+      line-height: 1.55;
+      color: #111827;
+    }
+
+    .instructions-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .wrap,
+    .wrap * {
+      font-family: "Gordita", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #000;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #F5F8FF;
+      border: 2px solid #D7E0FB;
+      overflow: hidden;
+      flex: 0 0 52px;
+    }
+
+    .brand-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    select,
+    button,
+    input {
+      font-size: 16px;
+      border-radius: 9999px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    input {
+      min-width: 340px;
+    }
+
+    .name-field {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .name-field-label {
+      font-size: 15px;
+      font-weight: 700 !important;
+      color: var(--chewy-blue) !important;
+    }
+
+    .name-error {
+      display: none;
+      font-size: 14px;
+      color: var(--error);
+      margin-top: 2px;
+    }
+
+    .name-error.show {
+      display: block;
+    }
+
+    .btn {
+      background: var(--chewy-blue);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .2s, transform .02s, opacity .2s;
+    }
+
+    .btn:hover {
+      background: var(--chewy-blue-600);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .status-row,
+    .scenario-label {
+      margin-top: 10px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 15px;
+    }
+
+    .status-label,
+    .scenario-title {
+      font-weight: 700 !important;
+      color: var(--chewy-blue) !important;
+    }
+
+    #status {
+      transition: color .2s, opacity .2s;
+    }
+
+    .vu {
+      width: 160px;
+      height: 10px;
+      background: #eee;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: #5b9df9;
+    }
+
+    audio {
+      display: none;
+    }
+
+    .guide-shell {
+      display: none;
+      margin-top: 22px;
+    }
+
+    .guide-shell.show {
+      display: block;
+      animation: fadeIn .25s ease-out;
+    }
+
+    .guide-top-note {
+      margin-top: 0;
+      padding: 14px 16px;
+      background: #F7F9FC;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .guide-controls {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .guide-controls.show {
+      display: flex;
+      justify-content: flex-start;
+      animation: fadeIn .25s ease-out;
+    }
+
+    .ghost-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--chewy-blue);
+      border-radius: 9999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ghost-btn:hover {
+      background: #f7f9ff;
+    }
+
+    .guide-content {
+      overflow: hidden;
+      max-height: 6000px;
+      opacity: 1;
+      transition: max-height .35s ease, opacity .25s ease, margin-top .25s ease;
+      margin-top: 18px;
+    }
+
+    .guide-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      pointer-events: none;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .section:first-child {
+      margin-top: 0;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .section p {
+      margin: 0 0 16px;
+      font-size: 15px;
+    }
+
+    .blue-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: var(--guide-blue);
+      color: #fff;
+      border-radius: 22px;
+      padding: 22px 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .blue-card * {
+      color: #fff;
+    }
+
+    .blue-card-avatar {
+      width: 72px;
+      height: 72px;
+      min-width: 72px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #E8EEF9;
+      background: #fff;
+    }
+
+    .blue-card-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .blue-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .blue-card li {
+      margin: 8px 0;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .pause-box {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      background: #F7F9FC;
+      border: 1px solid var(--border);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .end-area {
+      display: none;
+      margin-top: 28px;
+      padding-top: 8px;
+    }
+
+    .end-area.show {
+      display: block;
+      animation: fadeIn .25s ease-out;
+    }
+
+    .end-inner {
+      text-align: center;
+      padding: 0 0 6px 0;
+    }
+
+    .panel {
+      margin-top: 18px;
+      border: 1px solid var(--panel);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .panel h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+
+    .coach-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .coach-chip img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+
+    .coach-box {
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    #coachContainer[hidden] {
+      display: none;
+    }
+
+    #coachContainer.reveal {
+      animation: fadeIn .28s ease-out;
+    }
+
+    .coach-render h2 {
+      font-size: 26px;
+      margin: 18px 0 10px 0;
+      letter-spacing: -0.2px;
+    }
+
+    .coach-render ul {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    .coach-render li {
+      margin: 12px 0;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+
+    .coach-render strong {
+      font-weight: 800;
+    }
+
+    .card {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .inner-card {
+      background: var(--card-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .inner-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+
+    .summary {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #111;
+      margin: 10px 0 0 0;
+    }
+
+    .behavior-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+
+    .behavior-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--card-border);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .behavior-row:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .behavior-text {
+      flex: 1;
+    }
+
+    .mark {
+      flex: 0 0 auto;
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1;
+      padding-top: 4px;
+    }
+
+    .mark.ok {
+      color: #0a7a2a;
+    }
+
+    .mark.no {
+      color: #b42318;
+    }
+
+    .debug-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      background: #fff;
+      font-size: 13px;
+      color: #111;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .debug-box strong {
+      color: var(--chewy-blue);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @media (max-width:900px) {
+      .experience-card summary {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+      }
+
+      .experience-pill {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .experience-title {
+        font-size: 22px;
+      }
+
+      .experience-subtitle {
+        font-size: 16px;
+      }
+
+      .instructions-wrap {
+        padding: 0 12px 20px 12px;
+      }
+
+      .wrap {
+        padding: 18px;
+      }
+    }
+
+    @media (max-width:640px) {
+      .blue-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 18px;
+      }
+
+      .blue-card-avatar {
+        width: 64px;
+        height: 64px;
+        min-width: 64px;
+      }
+
+      input {
+        min-width: 100%;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="experience-card">
+      <details id="voiceAccordion">
+        <summary aria-controls="voiceBody">
+          <div class="experience-copy">
+            <h2 class="experience-title">Voice Experience</h2>
+            <p class="experience-subtitle">For voice agents. Demonstrate your ability to handle customer calls in a voice environment.</p>
+          </div>
+          <span class="experience-pill" data-open-label="Open Voice Experience" data-close-label="Hide Voice Experience">Open Voice Experience</span>
+        </summary>
+
+        <div class="experience-body" id="voiceBody">
+          <div class="instructions-wrap">
+            <div class="instructions-card">
+              <div class="instructions-top">
+                <svg class="instructions-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#1d4ed8" stroke-width="2"></circle>
+                  <line x1="12" y1="10" x2="12" y2="16" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round"></line>
+                  <circle cx="12" cy="7" r="1.2" fill="#1d4ed8"></circle>
+                </svg>
+                <h3 class="instructions-title">Instructions:</h3>
+              </div>
+              <ol class="instructions-list">
+                <li>Click <strong>Start</strong> and allow microphone access.</li>
+                <li>Support the customer as you would on a live call.</li>
+                <li>Use Coach Chewy for guidance.</li>
+                <li>Click <strong>End</strong> to receive feedback.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="wrap">
+            <div class="header">
+              <div class="brand-avatar">
+                <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/CCS_logo.png" alt="Chewy Customer Simulator" />
+              </div>
+              <div>
+                <div class="title">Chewy Customer Simulator</div>
+                <div class="subtitle">Apply what you've learned in a practice live call, then get coaching.</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <label class="name-field" id="nameField" for="agentName">
+                <span class="name-field-label">Agent name:</span>
+                <input id="agentName" placeholder="Enter your first name and last name" autocomplete="name" />
+                <div id="nameError" class="name-error">Please enter your full name using first name and last name.</div>
+              </label>
+            </div>
+
+            <div class="row">
+              <label class="scenario-label" style="display:none;">
+                <span class="scenario-title">Scenario:</span>
+                <select id="scenario" aria-label="Scenario"></select>
+              </label>
+              <button id="start" class="btn" type="button">📞 Start</button>
+              <div class="vu" title="Input level">
+                <div id="bar" class="bar"></div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <span class="status-label">Status:</span>
+              <span id="status">Loading scenarios…</span>
+            </div>
+            <div class="hint" id="hint">If the scenario dropdown does not load, confirm the API URL and CORS settings.</div>
+
+            <audio id="assistant" autoplay></audio>
+
+            <div id="guideShell" class="guide-shell">
+              <div class="guide-top-note">
+                ℹ️ Begin by speaking your <strong>Chewy greeting.</strong>
+              </div>
+
+              <div id="guideControls" class="guide-controls">
+                <button id="toggleGuideBtn" class="ghost-btn" type="button" aria-expanded="true">Hide call guide</button>
+              </div>
+
+              <div id="guideContent" class="guide-content">
+                <div class="section">
+                  <h2>Greet the Customer and Personalize the Conversation</h2>
+                  <p>The customer is calling about a delayed cat litter order and is frustrated that it has not arrived on time.</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>
+                        <li>Greet Mr. Munsen and thank him for reaching out.</li>
+                        <li>Reference Fluffy and the cat litter to personalize.</li>
+                        <li>Acknowledge the late delivery is frustrating.</li>
+                        <li>Say you will check the order right away.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+                </div>
+
+                <div class="section">
+                  <h2>Take Ownership and Begin Investigating the Order</h2>
+                  <p>The customer shares more about the delay and wants to understand what is happening with the order.</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>
+                        <li>Say you are pulling up the order.</li>
+                        <li>Acknowledge the delay and frustration.</li>
+                        <li>Ask him to verify the shipping address.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+                </div>
+
+                <div class="section">
+                  <h2>Verify the Address and Explain the Delay</h2>
+                  <p>The customer confirms the shipping address and is waiting for more details about the delay.</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>
+                        <li>Repeat the full address and confirm it is verified.</li>
+                        <li>Explain the delay in simple language.</li>
+                        <li>Tie the delay to weather near the fulfillment center.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+                </div>
+
+                <div class="section">
+                  <h2>Address Frustration and Provide Resolution</h2>
+                  <p>The customer expresses frustration and feels the delay is unfair due to the order arriving past the estimated delivery date.</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>
+                        <li>Acknowledge the customer’s frustration and validate why the delay feels unfair.</li>
+                        <li>Clearly explain the cause of the delay in simple terms and take ownership.</li>
+                        <li>Share the updated delivery expectation and reinforce what will happen next.</li>
+                        <li>Reassure the customer and show you are handling the situation.</li>
+                        <li>Since the order is three days past the estimated delivery date, offer a 20% concession.</li>
+                        <li>Present options for how to receive it and ask which they prefer.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+                </div>
+
+                <div class="section">
+                  <h2>Confirm the Resolution and Close the Call</h2>
+                  <p>The customer agrees to the resolution and wants confirmation of next steps.</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>
+                        <li>Confirm his preference and say you are processing the refund now.</li>
+                        <li>Set expectations for when the refund will appear.</li>
+                        <li>Recap the delivery plan with date and window, confirm the address, and offer additional help.</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+                </div>
+
+                <div class="guide-top-note" style="margin-top:30px;">
+                  ℹ️ After you finish supporting the customer, click <strong>End</strong> below to review your feedback.
+                </div>
+              </div>
+
+              <div id="endArea" class="end-area">
+                <div class="end-inner">
+                  <button id="end" class="btn" type="button" disabled>⏹️ End</button>
+                </div>
+
+                <div id="coachContainer" class="panel" hidden>
+                  <div class="coach-chip">
+                    <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    <h3 style="margin:0;">Here's what I noticed…</h3>
+                  </div>
+
+                  <div id="coach" class="coach-box coach-render" aria-live="polite" style="margin-top:8px;">
+                    After the call ends, your coaching will appear here.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    const voiceAccordion = document.getElementById("voiceAccordion");
+
+    function syncAccordionLabel() {
+      const pill = voiceAccordion.querySelector(".experience-pill");
+      if (!pill) return;
+      const openLabel = pill.getAttribute("data-open-label") || "Open";
+      const closeLabel = pill.getAttribute("data-close-label") || "Hide";
+      pill.textContent = voiceAccordion.open ? closeLabel : openLabel;
+    }
+
+    voiceAccordion.addEventListener("toggle", () => {
+      syncAccordionLabel();
+      if (voiceAccordion.open) {
+        handleNameFieldVisibility();
+      }
+    });
+    syncAccordionLabel();
+
+    const SESSION_BASE = "https://1ujjg47gt4.execute-api.us-east-2.amazonaws.com/default";
+    const SCENARIOS_URL = SESSION_BASE + "/scenarios";
+    const SESSION_URL = SESSION_BASE + "/session";
+    const EVAL_URL = SESSION_BASE + "/evaluate";
+    const COACHING_URL = SESSION_BASE + "/coaching";
+
+    const INGEST_TOKEN = "";
+
+    const DEFAULT_SCENARIO_ID = "late_delivery_20_partial_refund";
+    const HIDE_SCENARIO_DROPDOWN = true;
+
+    const STORE = window.localStorage;
+    const STORAGE_KEY = "ccs_coaching:late_delivery_20_partial_refund:voice";
+    const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
+    const AGENT_ID_STORAGE_KEY = "ccs_agentId";
+
+    const EVALUATION_RETRY_INITIAL_DELAY_MS = 2000;
+    const EVALUATION_RETRY_MAX_DELAY_MS = 15000;
+
+    function safeParse(json) { try { return JSON.parse(json); } catch (_) { return null; } }
+    function loadPersisted() {
+      const raw = STORE.getItem(STORAGE_KEY);
+      return raw ? safeParse(raw) : null;
+    }
+    function savePersisted(record) {
+      try { STORE.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (_) { }
+    }
+    function clearPersisted() { try { STORE.removeItem(STORAGE_KEY); } catch (_) { } }
+
+    let pc, micStream, analyser, rafId, recognition, recognizing = false, dcSend, dcRecv;
+    const statusEl = document.getElementById('status');
+    const coachEl = document.getElementById('coach');
+    const startBtn = document.getElementById('start');
+    const endBtn = document.getElementById('end');
+    const assistantEl = document.getElementById('assistant');
+    const scenarioSel = document.getElementById('scenario');
+    const coachContainer = document.getElementById('coachContainer');
+    const hintEl = document.getElementById('hint');
+    const agentNameInput = document.getElementById('agentName');
+    const nameFieldEl = document.getElementById('nameField');
+    const nameErrorEl = document.getElementById('nameError');
+
+    const guideShellEl = document.getElementById('guideShell');
+    const guideControlsEl = document.getElementById('guideControls');
+    const guideContentEl = document.getElementById('guideContent');
+    const toggleGuideBtn = document.getElementById('toggleGuideBtn');
+    const endAreaEl = document.getElementById('endArea');
+
+    const transcriptTurns = [];
+    window.transcriptTurns = transcriptTurns;
+
+    let sessionId = null;
+    let startedAt = null;
+    let guideCollapsed = false;
+    let evaluationRetryCancelled = false;
+
+    if (HIDE_SCENARIO_DROPDOWN) {
+      const label = scenarioSel.closest("label");
+      if (label) label.style.display = "none";
+    }
+
+    function now() { return new Date().toISOString(); }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function hasFullName(value) {
+      return String(value || "").trim().split(/\s+/).filter(Boolean).length >= 2;
+    }
+
+    function showNameError(message = "Please enter your full name using first name and last name.") {
+      if (!nameErrorEl) return;
+      nameErrorEl.textContent = message;
+      nameErrorEl.classList.add("show");
+    }
+
+    function hideNameError() {
+      if (!nameErrorEl) return;
+      nameErrorEl.classList.remove("show");
+    }
+
+    function setStatus(s) {
+      statusEl.style.opacity = .3;
+      statusEl.textContent = s;
+      requestAnimationFrame(() => { statusEl.style.opacity = 1; });
+    }
+
+    function escHtml(s) {
+      return String(s || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function addTurn(who, text) {
+      const t = String(text || "").trim();
+      if (!t) return;
+      transcriptTurns.push({ who, text: t, t: now() });
+    }
+
+    function getScenarioId() { return DEFAULT_SCENARIO_ID; }
+
+    function getQueryParams() {
+      const p = new URLSearchParams(location.search);
+      return {
+        agentId: p.get("agentId") || "",
+        agentName: p.get("agentName") || ""
+      };
+    }
+
+    function getScormApi2004() {
+      const maxTries = 20;
+      const roots = [window, window.parent, window.top];
+
+      for (let i = 0; i < roots.length; i++) {
+        let current = roots[i];
+        let tries = 0;
+
+        while (current && tries < maxTries) {
+          try {
+            if (current.API_1484_11) return current.API_1484_11;
+            if (current.parent && current.parent !== current) {
+              current = current.parent;
+              tries++;
+            } else {
+              break;
+            }
+          } catch (e) {
+            break;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function normalizeLearnerName(rawName) {
+      const value = String(rawName || "").trim();
+      if (!value) return "";
+
+      if (value.includes(",")) {
+        const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          return `${parts.slice(1).join(" ")} ${parts[0]}`.replace(/\s+/g, " ").trim();
+        }
+      }
+
+      return value.replace(/\s+/g, " ").trim();
+    }
+
+    function readScormLearnerInfo() {
+      try {
+        const api = getScormApi2004();
+        if (!api || typeof api.GetValue !== "function") {
+          return { name: "", id: "" };
+        }
+
+        const rawName = api.GetValue("cmi.learner_name") || "";
+        const rawId = api.GetValue("cmi.learner_id") || "";
+
+        return {
+          name: normalizeLearnerName(rawName),
+          id: String(rawId || "").trim()
+        };
+      } catch (e) {
+        return { name: "", id: "" };
+      }
+    }
+
+    function handleNameFieldVisibility() {
+      const scormInfo = readScormLearnerInfo();
+
+      if (hasFullName(scormInfo.name)) {
+        if (nameFieldEl) nameFieldEl.style.display = "none";
+        if (agentNameInput) agentNameInput.value = scormInfo.name;
+
+        try {
+          STORE.setItem(AGENT_NAME_STORAGE_KEY, scormInfo.name);
+          if (scormInfo.id) {
+            STORE.setItem(AGENT_ID_STORAGE_KEY, scormInfo.id);
+          }
+        } catch (_) { }
+
+        hideNameError();
+        return;
+      }
+
+      if (nameFieldEl) nameFieldEl.style.display = "flex";
+    }
+
+    function getAgentIdentity() {
+      const qp = getQueryParams();
+      const scormInfo = readScormLearnerInfo();
+      const inputName = agentNameInput ? agentNameInput.value.trim() : "";
+      const storedAgentName = STORE.getItem(AGENT_NAME_STORAGE_KEY) || "";
+      const storedAgentId = STORE.getItem(AGENT_ID_STORAGE_KEY) || "";
+
+      const resolvedName = String(
+        scormInfo.name ||
+        inputName ||
+        qp.agentName ||
+        storedAgentName ||
+        ""
+      ).trim();
+
+      const resolvedId = String(
+        scormInfo.id ||
+        qp.agentId ||
+        storedAgentId ||
+        resolvedName ||
+        ""
+      ).trim();
+
+      if (resolvedName) {
+        try { STORE.setItem(AGENT_NAME_STORAGE_KEY, resolvedName); } catch (_) { }
+      }
+
+      if (resolvedId) {
+        try { STORE.setItem(AGENT_ID_STORAGE_KEY, resolvedId); } catch (_) { }
+      }
+
+      return {
+        agentId: resolvedId || "unknown",
+        agentName: resolvedName || "Unknown Agent"
+      };
+    }
+
+    function showGuide() {
+      guideShellEl.classList.add("show");
+      guideControlsEl.classList.add("show");
+      endAreaEl.classList.add("show");
+    }
+
+    function collapseGuide() {
+      guideCollapsed = true;
+      guideContentEl.classList.add("collapsed");
+      toggleGuideBtn.textContent = "Show call guide";
+      toggleGuideBtn.setAttribute("aria-expanded", "false");
+    }
+
+    function expandGuide() {
+      guideCollapsed = false;
+      guideContentEl.classList.remove("collapsed");
+      toggleGuideBtn.textContent = "Hide call guide";
+      toggleGuideBtn.setAttribute("aria-expanded", "true");
+    }
+
+    function toggleGuide() {
+      if (guideCollapsed) expandGuide();
+      else collapseGuide();
+    }
+
+    async function fetchJSON(url, opts = {}, timeoutMs = 45000) {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { mode: "cors", cache: "no-store", ...opts, signal: ctrl.signal });
+        const text = await res.text().catch(() => "");
+        let data; try { data = text ? JSON.parse(text) : {}; } catch { data = { _raw: text }; }
+        if (!res.ok) {
+          console.error("HTTP", res.status, text.slice(0, 1200));
+          return { error: true, status: res.status, body: text, data };
+        }
+        return data;
+      } catch (e) {
+        console.error("Fetch fail", e);
+        return { error: true, message: String(e), errorName: String(e && e.name || "") };
+      } finally {
+        clearTimeout(id);
+      }
+    }
+
+    function populateScenarios(list) {
+      scenarioSel.innerHTML = "";
+      for (const s of list) {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.label || s.id;
+        scenarioSel.appendChild(opt);
+      }
+    }
+
+    function selectScenarioOrFail() {
+      const opts = Array.from(scenarioSel.options || []);
+      if (!opts.length) return false;
+
+      const match = opts.find(o => o.value === DEFAULT_SCENARIO_ID);
+      if (!match) return false;
+
+      scenarioSel.value = DEFAULT_SCENARIO_ID;
+      return true;
+    }
+
+    async function loadScenarios() {
+      setStatus("Loading scenarios…");
+      hintEl.textContent = "If the scenario does not load, confirm the API URL, scenario id, and CORS settings.";
+      startBtn.disabled = true;
+
+      const data = await fetchJSON(SCENARIOS_URL, { method: "GET" }, 15000);
+
+      if (!(data && Array.isArray(data.scenarios) && data.scenarios.length)) {
+        setStatus("Unable to load scenario.");
+        hintEl.textContent = "The simulator could not load available scenarios. Please contact your facilitator.";
+        startBtn.disabled = true;
+        return;
+      }
+
+      populateScenarios(data.scenarios);
+
+      if (!selectScenarioOrFail()) {
+        setStatus("Scenario not available.");
+        hintEl.textContent = "This simulator scenario is not currently available. Please contact your facilitator.";
+        startBtn.disabled = true;
+        return;
+      }
+
+      setStatus("Ready");
+      hintEl.textContent = "";
+      startBtn.disabled = false;
+    }
+
+    function normalizeEvaluation(obj) {
+      if (!obj || typeof obj !== "object") return null;
+
+      if (Array.isArray(obj.quality_checklist) && typeof obj.summary === "string") return obj;
+
+      if (obj.coaching && typeof obj.coaching === "object") {
+        const c = obj.coaching;
+        if (Array.isArray(c.quality_checklist) && typeof c.summary === "string") return c;
+      }
+
+      if (obj.evaluation && typeof obj.evaluation === "object") {
+        const e = obj.evaluation;
+        if (Array.isArray(e.quality_checklist) && typeof e.summary === "string") return e;
+      }
+
+      return null;
+    }
+
+    function normalizeLegacyCoaching(obj) {
+      if (!obj || typeof obj !== "object") return null;
+
+      if (
+        Array.isArray(obj.strengths) &&
+        Array.isArray(obj.areas_of_improvement) &&
+        Array.isArray(obj.feedback_from_transcript)
+      ) return obj;
+
+      if (
+        Array.isArray(obj.strengths) &&
+        Array.isArray(obj.areas_of_improvement) &&
+        Array.isArray(obj.feedback)
+      ) {
+        return {
+          strengths: obj.strengths,
+          areas_of_improvement: obj.areas_of_improvement,
+          feedback_from_transcript: obj.feedback
+        };
+      }
+
+      return null;
+    }
+
+    function renderEvaluation(evaluation) {
+      const qc = Array.isArray(evaluation.quality_checklist) ? evaluation.quality_checklist : [];
+      const summary = typeof evaluation.summary === "string" ? evaluation.summary.trim() : "";
+
+      let html = "";
+      html += `<h2>Chewy Quality Behaviors</h2>`;
+
+      for (const cat of qc) {
+        const category = cat && cat.category ? String(cat.category) : "Category";
+        const behaviors = Array.isArray(cat.behaviors) ? cat.behaviors : [];
+
+        html += `<div class="card"><div class="inner-card">`;
+        html += `<h3>${escHtml(category)}</h3>`;
+        html += `<ul class="behavior-list">`;
+
+        for (const b of behaviors) {
+          const behavior = b && b.behavior ? String(b.behavior) : "";
+          const observed = !!(b && b.observed);
+
+          html += `<li class="behavior-row">`;
+          html += `<div class="behavior-text">${escHtml(behavior)}</div>`;
+          html += `<div class="mark ${observed ? "ok" : "no"}" aria-label="${observed ? "Observed" : "Not observed"}">${observed ? "✅" : "❌"}</div>`;
+          html += `</li>`;
+        }
+
+        html += `</ul></div></div>`;
+      }
+
+      if (summary) {
+        html += `<h2>Overall summary</h2>`;
+        html += `<div class="card"><div class="inner-card"><p class="summary">${escHtml(summary)}</p></div></div>`;
+      }
+
+      return html;
+    }
+
+    function renderLegacyCoaching(coaching) {
+      const strengths = Array.isArray(coaching.strengths) ? coaching.strengths : [];
+      const improvements = Array.isArray(coaching.areas_of_improvement) ? coaching.areas_of_improvement : [];
+      const examples = Array.isArray(coaching.feedback_from_transcript) ? coaching.feedback_from_transcript : [];
+
+      let html = "";
+
+      html += `<h2>Strengths</h2><ul>`;
+      for (const s of strengths) {
+        html += `<li><strong>${escHtml(s.label)}:</strong> ${escHtml(s.text)}</li>`;
+      }
+      html += `</ul>`;
+
+      html += `<h2>Areas of improvement</h2><ul>`;
+      for (const s of improvements) {
+        html += `<li><strong>${escHtml(s.label)}:</strong> ${escHtml(s.text)}</li>`;
+      }
+      html += `</ul>`;
+
+      html += `<h2>Feedback from your transcript</h2>`;
+      for (const ex of examples) {
+        html += `<div class="card"><div class="inner-card">`;
+        html += `<h3 style="margin:0 0 10px 0;">Quote</h3>`;
+        html += `<p class="summary">“${escHtml((ex.quote || "").trim())}”</p>`;
+        html += `<h3 style="margin:14px 0 10px 0;">Conversation insight</h3>`;
+        html += `<p class="summary">${escHtml(ex.conversation_insight)}</p>`;
+        html += `<h3 style="margin:14px 0 10px 0;">Example</h3>`;
+        html += `<p class="summary">${escHtml(ex.better_example)}</p>`;
+        html += `</div></div>`;
+      }
+
+      return html;
+    }
+
+    function renderErrorWithDebug(message, debug) {
+      let html = `<div><strong>${escHtml(message)}</strong></div>`;
+      if (debug && typeof debug === "object") {
+        html += `<div class="debug-box"><strong>Debug</strong>\n${escHtml(JSON.stringify(debug, null, 2))}</div>`;
+      }
+      return html;
+    }
+
+    function persistCoachingScreen(record) {
+      savePersisted(record);
+    }
+
+    function showCoachingFromPersisted(record) {
+      showGuide();
+      collapseGuide();
+      coachContainer.hidden = false;
+      requestAnimationFrame(() => coachContainer.classList.add("reveal"));
+
+      if (record && typeof record.statusText === "string") setStatus(record.statusText);
+
+      if (record && record.coachHtml) {
+        coachEl.innerHTML = record.coachHtml;
+      } else {
+        coachEl.textContent = "After the call ends, your coaching will appear here.";
+      }
+    }
+
+    function tryRestoreCoachingScreen() {
+      const saved = loadPersisted();
+      if (!saved || saved.hasCoaching !== true || !saved.coachHtml) return false;
+
+      showCoachingFromPersisted(saved);
+      startBtn.disabled = false;
+      endBtn.disabled = true;
+      return true;
+    }
+
+    function startUserSTT() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return;
+
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (e) => {
+        let finalText = "";
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          const res = e.results[i];
+          if (res.isFinal) finalText += res[0].transcript.trim() + " ";
+        }
+        if (finalText) addTurn("agent", finalText.trim());
+      };
+
+      recognition.onend = () => { if (recognizing) recognition.start(); };
+      recognizing = true;
+      try { recognition.start(); } catch { }
+    }
+
+    function stopUserSTT() { recognizing = false; try { recognition && recognition.stop(); } catch { } }
+
+    function animateVU() {
+      const bar = document.getElementById('bar');
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      (function tick() {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        bar.style.width = Math.min(100, Math.round(rms * 180)) + "%";
+        rafId = requestAnimationFrame(tick);
+      })();
+    }
+
+    function joinTurnsToTranscriptText(turns) {
+      return (turns || [])
+        .map(t => `${t.who === "agent" ? "Agent" : "Customer"}: ${t.text}`)
+        .join("\n")
+        .trim();
+    }
+
+    function buildObservedBehaviorsText(observedBehaviors) {
+      if (!Array.isArray(observedBehaviors) || !observedBehaviors.length) return "";
+
+      return observedBehaviors
+        .map((item) => {
+          const category = String(item.category || "").trim();
+          const behaviors = Array.isArray(item.observedBehaviors) ? item.observedBehaviors : [];
+          const behaviorText = behaviors.map((b) => String(b || "").trim()).filter(Boolean).join("; ");
+          if (!category && !behaviorText) return "";
+          if (!category) return behaviorText;
+          if (!behaviorText) return category;
+          return `${category}: ${behaviorText}`;
+        })
+        .filter(Boolean)
+        .join(" | ");
+    }
+
+    function buildMissedBehaviorsText(missedBehaviors) {
+      if (!Array.isArray(missedBehaviors) || !missedBehaviors.length) return "";
+
+      return missedBehaviors
+        .map((item) => {
+          const category = String(item.category || "").trim();
+          const behaviors = Array.isArray(item.missedBehaviors) ? item.missedBehaviors : [];
+          const behaviorText = behaviors.map((b) => String(b || "").trim()).filter(Boolean).join("; ");
+          if (!category && !behaviorText) return "";
+          if (!category) return behaviorText;
+          if (!behaviorText) return category;
+          return `${category}: ${behaviorText}`;
+        })
+        .filter(Boolean)
+        .join(" | ");
+    }
+
+    function buildBehaviorBucketsFromEvaluation(evaluation) {
+      const checklist = Array.isArray(evaluation?.quality_checklist) ? evaluation.quality_checklist : [];
+
+      const observedBehaviors = checklist
+        .map((cat) => {
+          const category = String(cat?.category || "").trim();
+          const behaviors = Array.isArray(cat?.behaviors) ? cat.behaviors : [];
+
+          const observed = behaviors
+            .filter((b) => !!b?.observed && String(b?.behavior || "").trim())
+            .map((b) => String(b.behavior).trim());
+
+          return { category, observedBehaviors: observed };
+        })
+        .filter((cat) => cat.category && cat.observedBehaviors.length > 0);
+
+      const missedBehaviors = checklist
+        .map((cat) => {
+          const category = String(cat?.category || "").trim();
+          const behaviors = Array.isArray(cat?.behaviors) ? cat.behaviors : [];
+
+          const missed = behaviors
+            .filter((b) => !b?.observed && String(b?.behavior || "").trim())
+            .map((b) => String(b.behavior).trim());
+
+          return { category, missedBehaviors: missed };
+        })
+        .filter((cat) => cat.category && cat.missedBehaviors.length > 0);
+
+      return {
+        observedBehaviors,
+        missedBehaviors
+      };
+    }
+
+    function buildReportingPayload(evaluation, transcriptText, scenarioId, scenarioLabel, endedAt, errorText = "") {
+      const ident = getAgentIdentity();
+      const buckets = buildBehaviorBucketsFromEvaluation(evaluation);
+
+      const observedBehaviorsText = buildObservedBehaviorsText(buckets.observedBehaviors);
+      const missedBehaviorsText = buildMissedBehaviorsText(buckets.missedBehaviors);
+
+      return {
+        sessionId,
+        agentId: ident.agentId,
+        agentName: ident.agentName,
+        scenarioId,
+        scenarioLabel,
+        startedAt,
+        endedAt,
+        completionStatus: "Completed",
+        coachSummaryText: String(evaluation?.summary || "").trim(),
+        observedBehaviors: observedBehaviorsText,
+        missedBehaviors: missedBehaviorsText,
+        transcript: String(transcriptText || "").replace(/\\n/g, "\n"),
+        errorText
+      };
+    }
+
+    async function saveCoachingRecord(payload) {
+      const headers = { "Content-Type": "application/json" };
+      if (INGEST_TOKEN) headers["x-ingest-token"] = INGEST_TOKEN;
+
+      const res = await fetchJSON(COACHING_URL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      }, 20000);
+
+      return !!(res && res.ok === true);
+    }
+
+    function attachRealtimeMessageHandlers(channel) {
+      if (!channel) return;
+
+      let customerBuffer = "";
+
+      const flushCustomer = () => {
+        const t = customerBuffer.trim();
+        if (t) addTurn("customer", t);
+        customerBuffer = "";
+      };
+
+      channel.onmessage = (e) => {
+        let msg; try { msg = JSON.parse(e.data); } catch { return; }
+        const type = String(msg.type || "");
+
+        if (type === "response.output_text.delta" && typeof msg.delta === "string") {
+          customerBuffer += msg.delta;
+          return;
+        }
+        if (type === "response.output_text.done" || type === "response.completed") {
+          flushCustomer();
+          return;
+        }
+
+        if (type === "response.output_audio_transcript.delta" && typeof msg.delta === "string") {
+          customerBuffer += msg.delta;
+          return;
+        }
+        if (type === "response.output_audio_transcript.done") {
+          flushCustomer();
+          return;
+        }
+
+        if (type === "response.audio_transcript.delta" && typeof msg.delta === "string") {
+          customerBuffer += msg.delta;
+          return;
+        }
+        if (type === "response.audio_transcript.done") {
+          flushCustomer();
+          return;
+        }
+
+        if ((type.endsWith("transcript.delta") || type.endsWith("transcript.text.delta")) && typeof msg.delta === "string") {
+          customerBuffer += msg.delta;
+          return;
+        }
+        if (type.endsWith("transcript.done") || type.endsWith("transcript.text.done")) {
+          flushCustomer();
+          return;
+        }
+
+        if (type === "response.message" && msg.role === "assistant" && Array.isArray(msg.content)) {
+          const t = msg.content.map(c => c && c.text ? c.text : "").filter(Boolean).join(" ").trim();
+          if (t) addTurn("customer", t);
+          return;
+        }
+      };
+    }
+
+    function isRetryableEvalFailure(resp) {
+      if (!resp || typeof resp !== "object") return true;
+
+      const message = String(resp.message || "");
+      const text = String(resp.text || "");
+      const status = Number(resp.status || 0);
+
+      if (resp.error === true) return true;
+      if (status >= 500) return true;
+      if (/failed to fetch/i.test(message)) return true;
+      if (/aborterror/i.test(message)) return true;
+      if (/networkerror/i.test(message)) return true;
+      if (/unable to generate evaluation/i.test(text)) return true;
+
+      return false;
+    }
+
+    async function fetchEvaluationUntilSuccess(scenarioId, transcript) {
+      let attempt = 0;
+
+      while (!evaluationRetryCancelled) {
+        attempt += 1;
+
+        if (attempt === 1) {
+          setStatus("Generating coaching…");
+          coachEl.textContent = "Generating coaching…";
+        } else {
+          setStatus(`Generating coaching… retrying (${attempt})`);
+          coachEl.innerHTML = `
+            <div class="summary">
+              We're still generating your coaching feedback. A temporary hiccup occurred, so the simulator is retrying automatically.
+            </div>
+            <div class="hint" style="margin-top:10px;">
+              Retry attempt: ${attempt}
+            </div>
+          `;
+        }
+
+        const evalResp = await fetchJSON(EVAL_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenario: scenarioId,
+            transcript
+          })
+        }, 60000);
+
+        const evaluation = normalizeEvaluation(evalResp);
+        if (evaluation) {
+          return { type: "evaluation", payload: evaluation, raw: evalResp };
+        }
+
+        const legacy = normalizeLegacyCoaching(evalResp && evalResp.coaching ? evalResp.coaching : null) || normalizeLegacyCoaching(evalResp);
+        if (legacy) {
+          return { type: "legacy", payload: legacy, raw: evalResp };
+        }
+
+        if (!isRetryableEvalFailure(evalResp)) {
+          return { type: "raw", payload: evalResp, raw: evalResp };
+        }
+
+        const delay = Math.min(EVALUATION_RETRY_INITIAL_DELAY_MS * Math.pow(2, attempt - 1), EVALUATION_RETRY_MAX_DELAY_MS);
+        await wait(delay);
+      }
+
+      return {
+        type: "raw",
+        payload: { text: "Coaching generation was cancelled." },
+        raw: { text: "Coaching generation was cancelled." }
+      };
+    }
+
+    async function start() {
+      evaluationRetryCancelled = false;
+      handleNameFieldVisibility();
+
+      const scormInfo = readScormLearnerInfo();
+      const enteredName = agentNameInput ? agentNameInput.value.trim() : "";
+      const finalName = scormInfo.name || enteredName;
+
+      if (!hasFullName(finalName)) {
+        showNameError();
+        setStatus("Enter your full name to begin.");
+        if (agentNameInput) agentNameInput.focus();
+        return;
+      }
+
+      if (agentNameInput && agentNameInput.value.trim() !== finalName) {
+        agentNameInput.value = finalName;
+      }
+
+      hideNameError();
+      try { STORE.setItem(AGENT_NAME_STORAGE_KEY, finalName); } catch (_) { }
+      if (scormInfo.id) {
+        try { STORE.setItem(AGENT_ID_STORAGE_KEY, scormInfo.id); } catch (_) { }
+      }
+
+      clearPersisted();
+
+      coachContainer.hidden = true;
+      coachContainer.classList.remove('reveal');
+      coachEl.textContent = "After the call ends, your coaching will appear here.";
+      transcriptTurns.length = 0;
+
+      expandGuide();
+      showGuide();
+
+      sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      startedAt = now();
+
+      startBtn.disabled = true;
+      endBtn.disabled = true;
+
+      setStatus("Requesting microphone permission…");
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      startUserSTT();
+
+      setStatus("Contacting session server…");
+      const ephem = await fetchJSON(SESSION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario: getScenarioId() })
+      }, 20000);
+
+      if (!ephem?.client_secret?.value) {
+        console.error("Session create failed:", ephem);
+        const msg = ephem?.message || ephem?.body || (ephem?.status ? ("HTTP " + ephem.status) : "") || "Error creating session";
+        setStatus(("Error creating session: " + msg).slice(0, 140));
+        startBtn.disabled = false;
+        endBtn.disabled = true;
+        return;
+      }
+
+      setStatus("Creating WebRTC connection…");
+      pc = new RTCPeerConnection();
+
+      dcSend = pc.createDataChannel("oai-events");
+      attachRealtimeMessageHandlers(dcSend);
+
+      dcSend.onopen = () => {
+        try {
+          const cfg = {
+            type: "session.update",
+            session: {
+              audio: {
+                input: {
+                  turn_detection: {
+                    type: "server_vad",
+                    threshold: 0.5,
+                    prefix_padding_ms: 300,
+                    silence_duration_ms: 1200,
+                    idle_timeout_ms: 20000,
+                    interrupt_response: true,
+                    create_response: true
+                  }
+                }
+              }
+            }
+          };
+          dcSend.send(JSON.stringify(cfg));
+        } catch { }
+      };
+
+      pc.ondatachannel = (ev) => {
+        dcRecv = ev.channel;
+        attachRealtimeMessageHandlers(dcRecv);
+      };
+
+      const remote = new MediaStream();
+      assistantEl.srcObject = remote;
+      pc.ontrack = (e) => remote.addTrack(e.track);
+      micStream.getTracks().forEach(t => pc.addTrack(t, micStream));
+
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = ctx.createMediaStreamSource(micStream);
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        src.connect(analyser);
+        animateVU();
+      } catch { }
+
+      setStatus("Negotiating with OpenAI Realtime…");
+      const offer = await pc.createOffer({ offerToReceiveAudio: true });
+      await pc.setLocalDescription(offer);
+
+      const MODEL = "gpt-4o-mini-realtime-preview-2024-12-17";
+      const r = await fetch(`https://api.openai.com/v1/realtime?model=${encodeURIComponent(MODEL)}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${ephem.client_secret.value}`,
+          "Content-Type": "application/sdp",
+          "Accept": "application/sdp"
+        },
+        body: offer.sdp
+      });
+
+      if (!r.ok) {
+        setStatus("Realtime API error " + r.status);
+        startBtn.disabled = false;
+        endBtn.disabled = true;
+        return;
+      }
+
+      const answer = await r.text();
+      await pc.setRemoteDescription({ type: "answer", sdp: answer });
+      setStatus("Connected. Start talking.");
+      endBtn.disabled = false;
+    }
+
+    async function endCall() {
+      const endedAt = now();
+      evaluationRetryCancelled = false;
+
+      stopUserSTT();
+      try { pc && pc.close(); } catch { }
+      try { micStream && micStream.getTracks().forEach(t => t.stop()); } catch { }
+      if (rafId) cancelAnimationFrame(rafId);
+
+      setStatus("Generating coaching…");
+      endBtn.disabled = true;
+      startBtn.disabled = true;
+
+      collapseGuide();
+
+      coachContainer.hidden = false;
+      coachContainer.classList.remove("reveal");
+      coachEl.textContent = "Generating coaching…";
+      requestAnimationFrame(() => coachContainer.classList.add("reveal"));
+
+      const fullTranscript = joinTurnsToTranscriptText(transcriptTurns) || "Agent: (no transcript)\nCustomer: (no transcript)";
+      const scenarioId = getScenarioId();
+      const scenarioLabel =
+        scenarioSel && scenarioSel.options && scenarioSel.options[scenarioSel.selectedIndex]
+          ? scenarioSel.options[scenarioSel.selectedIndex].textContent
+          : "";
+
+      const result = await fetchEvaluationUntilSuccess(scenarioId, fullTranscript);
+
+      if (result.type === "evaluation") {
+        const evaluation = result.payload;
+        const rendered = renderEvaluation(evaluation);
+        coachEl.innerHTML = rendered;
+        setStatus("Coaching ready.");
+
+        persistCoachingScreen({
+          hasCoaching: true,
+          scenarioId,
+          scenarioLabel,
+          statusText: "Coaching ready.",
+          coachHtml: rendered,
+          savedAt: now()
+        });
+
+        await saveCoachingRecord(
+          buildReportingPayload(
+            evaluation,
+            fullTranscript,
+            scenarioId,
+            scenarioLabel,
+            endedAt
+          )
+        );
+
+        transcriptTurns.length = 0;
+        startBtn.disabled = false;
+        coachContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (result.type === "legacy") {
+        const legacy = result.payload;
+        const rendered = renderLegacyCoaching(legacy);
+        coachEl.innerHTML = rendered;
+        setStatus("Coaching ready.");
+
+        persistCoachingScreen({
+          hasCoaching: true,
+          scenarioId,
+          scenarioLabel,
+          statusText: "Coaching ready.",
+          coachHtml: rendered,
+          savedAt: now()
+        });
+
+        await saveCoachingRecord({
+          sessionId,
+          agentId: getAgentIdentity().agentId,
+          agentName: getAgentIdentity().agentName,
+          scenarioId,
+          scenarioLabel,
+          startedAt,
+          endedAt,
+          completionStatus: "Completed",
+          coachSummaryText: "",
+          observedBehaviors: "",
+          missedBehaviors: "",
+          transcript: fullTranscript,
+          errorText: ""
+        });
+
+        transcriptTurns.length = 0;
+        startBtn.disabled = false;
+        coachContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const evalResp = result.raw || {};
+      const msg = (evalResp && evalResp.text) ? evalResp.text : "Unable to generate coaching from transcript.";
+      const debug = (evalResp && evalResp.debug) ? evalResp.debug : null;
+
+      const rendered =
+        renderErrorWithDebug(msg, debug) +
+        `<div class="debug-box"><strong>/evaluate response</strong>\n${escHtml(JSON.stringify(evalResp, null, 2))}</div>`;
+
+      coachEl.innerHTML = rendered;
+      setStatus("Coaching failed.");
+
+      persistCoachingScreen({
+        hasCoaching: true,
+        scenarioId,
+        scenarioLabel,
+        statusText: "Coaching failed.",
+        coachHtml: rendered,
+        savedAt: now()
+      });
+
+      await saveCoachingRecord({
+        sessionId,
+        agentId: getAgentIdentity().agentId,
+        agentName: getAgentIdentity().agentName,
+        scenarioId,
+        scenarioLabel,
+        startedAt,
+        endedAt,
+        completionStatus: "Completed",
+        coachSummaryText: "",
+        observedBehaviors: "",
+        missedBehaviors: "",
+        transcript: fullTranscript,
+        errorText: msg
+      });
+
+      transcriptTurns.length = 0;
+      startBtn.disabled = false;
+      coachContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    toggleGuideBtn.onclick = toggleGuide;
+    startBtn.onclick = start;
+    endBtn.onclick = endCall;
+
+    if (agentNameInput) {
+      const storedAgentName = STORE.getItem(AGENT_NAME_STORAGE_KEY) || "";
+      if (storedAgentName) {
+        agentNameInput.value = storedAgentName;
+      }
+
+      agentNameInput.addEventListener("input", () => {
+        hideNameError();
+      });
+
+      agentNameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          start();
+        }
+      });
+    }
+
+    loadScenarios().then(() => {
+      tryRestoreCoachingScreen();
+      handleNameFieldVisibility();
+    });
+  </script>
+</body>
+</html>

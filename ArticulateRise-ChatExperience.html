@@ -1,0 +1,2523 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Chewy Customer Simulator - Chat Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --page-bg: #eef3fb;
+      --panel: #ffffff;
+      --border: #d6dfef;
+      --text: #1f2937;
+      --muted: #667085;
+      --agent: #1d4ed8;
+      --customer: #ececec;
+      --accent: #1d4ed8;
+      --accent-dark: #1742b8;
+      --success: #22c55e;
+      --danger: #dc2626;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      --radius-panel: 20px;
+      --design-width: 1280;
+      --design-height: 720;
+
+      --accordion-bg: #f3f4f6;
+      --accordion-border: #e5e7eb;
+      --instructions-bg: #f3f6fc;
+      --instructions-border: #d9e2f2;
+      --pause-bg: #f7f9fc;
+      --pause-border: #d6dfef;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .page, .page * {
+      font-family: "Gordita", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #000;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+
+    .page {
+      width: 100%;
+      background: transparent;
+      padding: 0;
+    }
+
+    .experience-card {
+      width: 100%;
+      background: var(--accordion-bg);
+      border: 1px solid var(--accordion-border);
+      border-radius: 34px;
+      overflow: hidden;
+    }
+
+    .experience-card details {
+      width: 100%;
+    }
+
+    .experience-card summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      background: var(--accordion-bg);
+    }
+
+    .experience-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .experience-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .experience-title {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #13294b;
+    }
+
+    .experience-subtitle {
+      margin: 10px 0 0 0;
+      font-size: 17px;
+      line-height: 1.45;
+      color: #3f556f;
+    }
+
+    .experience-pill {
+      flex-shrink: 0;
+      min-width: 315px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 28px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+      transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+      border: 2px solid var(--accent);
+    }
+
+    .experience-card summary:hover .experience-pill {
+      background: var(--accent-dark);
+      color: #ffffff;
+      border-color: var(--accent-dark);
+    }
+
+    .experience-card details[open] .experience-pill {
+      background: #ffffff;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .experience-body {
+      display: none;
+      padding: 0 0 28px 0;
+      background: transparent;
+    }
+
+    .experience-card details[open] .experience-body {
+      display: block;
+    }
+
+    .instructions-wrap {
+      padding: 0 20px 24px 20px;
+    }
+
+    .instructions-card {
+      background: var(--instructions-bg);
+      border: 1px solid var(--instructions-border);
+      border-radius: 2px;
+      padding: 26px 34px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .instructions-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .instructions-icon {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .instructions-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .instructions-list {
+      margin: 0 0 0 48px;
+      padding-left: 18px;
+    }
+
+    .instructions-list > li {
+      margin-bottom: 18px;
+      font-size: 17px;
+      line-height: 1.55;
+      color: #111827;
+    }
+
+    .instructions-list > li:last-child {
+      margin-bottom: 0;
+    }
+
+    .instructions-sublist {
+      margin: 10px 0 0 0;
+      padding-left: 24px;
+      list-style-type: disc;
+    }
+
+    .instructions-sublist li {
+      margin-bottom: 0;
+      font-size: 16px;
+      line-height: 1.55;
+      color: #111827;
+    }
+
+    .sim-shell {
+      padding: 0 20px;
+    }
+
+    .viewport {
+      width: 100%;
+      height: 720px;
+      overflow: hidden;
+      position: relative;
+      background: var(--page-bg);
+      border-radius: 20px;
+    }
+
+    .stage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(var(--design-width) * 1px);
+      height: calc(var(--design-height) * 1px);
+      transform-origin: top left;
+    }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 10px;
+      padding: 8px;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-panel);
+      box-shadow: var(--shadow);
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .chat-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      background: #fff;
+      position: relative;
+      min-height: 0;
+    }
+
+    .guide-panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+
+    .guide-header,
+    .chat-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .guide-header-row,
+    .chat-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .guide-header-left,
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .coach-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #dbeafe;
+      flex-shrink: 0;
+    }
+
+    .coach-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sim-icon {
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .guide-title,
+    .chat-header-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #111827;
+    }
+
+    .header-link {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .header-link:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .guide-scroll {
+      overflow-y: auto;
+      padding: 14px;
+      background: #fcfdff;
+      min-height: 0;
+    }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section h2 {
+      margin: 0 0 10px 0;
+      font-size: 19px;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .section p {
+      margin: 0 0 12px 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .blue-card {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #edf5ff;
+      border: 1px solid #cddff8;
+    }
+
+    .blue-card .coach-avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .blue-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .blue-card li {
+      margin-bottom: 8px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .blue-card li:last-child {
+      margin-bottom: 0;
+    }
+
+    .pause-card {
+      margin: 0 0 12px 0;
+      padding: 14px 16px;
+      background: var(--pause-bg);
+      border: 1px solid var(--pause-border);
+      text-align: center;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .messages {
+      position: relative;
+      overflow-y: auto;
+      padding: 12px 14px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #ffffff;
+      min-height: 0;
+    }
+
+    .chat-started {
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+      margin: 4px 0 10px 0;
+      line-height: 1.35;
+    }
+
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 86%;
+    }
+
+    .message-row.agent {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .message-row.customer,
+    .message-row.system {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .bubble {
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+
+    .message-row.agent .bubble {
+      background: var(--agent);
+      color: #ffffff;
+      border-bottom-right-radius: 8px;
+    }
+
+    .message-row.customer .bubble {
+      background: var(--customer);
+      color: #111827;
+      border-bottom-left-radius: 8px;
+    }
+
+    .message-row.system .bubble {
+      background: #fff7e6;
+      color: #7a4b00;
+      border: 1px solid #f2d7a6;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .meta {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.25;
+    }
+
+    .typing {
+      display: none;
+      padding: 0 16px 10px 16px;
+      font-size: 14px;
+      color: var(--muted);
+      background: #ffffff;
+      flex-shrink: 0;
+      border-top: 1px solid transparent;
+    }
+
+    .typing.active {
+      display: block;
+    }
+
+    .composer {
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      padding: 10px 14px 12px 14px;
+      min-height: 112px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .composer-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .composer-input-wrap {
+      min-width: 0;
+      border: 1px solid #bfd3ff;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 12px 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 72px;
+      max-height: 110px;
+      resize: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+      background: transparent;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    textarea::placeholder {
+      color: #8a94a6;
+      font-size: 18px;
+      font-weight: 400;
+      opacity: 1;
+    }
+
+    .composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      min-height: 30px;
+    }
+
+    .composer-footer-note {
+      font-size: 14px;
+      line-height: 1.3;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    .send-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .send-btn svg {
+      width: 28px;
+      height: 28px;
+      display: block;
+      fill: #9aa3b2;
+    }
+
+    .send-btn.primary-active svg {
+      fill: var(--accent);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .feedback-shell {
+      display: none;
+      padding: 2px 0 0 0;
+    }
+
+    .feedback-shell.active {
+      display: block;
+    }
+
+    .feedback-card {
+      background: #f5f7fb;
+      border: 1px solid #e7ecf4;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .feedback-card-inner {
+      background: #ffffff;
+      border: 1px solid #eef2f7;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .feedback-card-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+
+    .behavior-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .behavior-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid #f0f2f6;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .behavior-item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .checkmark {
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .checkmark.ok {
+      color: var(--success);
+    }
+
+    .checkmark.no {
+      color: var(--danger);
+    }
+
+    .summary-text {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .loading-shell {
+      display: none;
+      padding: 2px 0 0 0;
+    }
+
+    .loading-shell.active {
+      display: block;
+    }
+
+    .loading-card {
+      background: #f5f7fb;
+      border: 1px solid #e7ecf4;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .loading-card-inner {
+      background: #ffffff;
+      border: 1px solid #eef2f7;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .loading-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #dbeafe;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .loading-title {
+      font-size: 19px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .loading-copy {
+      margin: 0 0 12px 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .skeleton {
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      margin-bottom: 10px;
+    }
+
+    .skeleton:last-child {
+      margin-bottom: 0;
+    }
+
+    .skeleton.w90 { width: 90%; }
+    .skeleton.w75 { width: 75%; }
+    .skeleton.w60 { width: 60%; }
+
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.26);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 30;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 470px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      padding: 18px 18px 14px 18px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      font-size: 22px;
+      line-height: 1;
+      color: #6b7280;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .modal-body {
+      padding: 16px 18px 18px 18px;
+    }
+
+    .modal-copy {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #374151;
+      margin: 0 0 16px 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-primary,
+    .modal-secondary {
+      width: 100%;
+      border-radius: 999px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: 1px solid var(--accent);
+    }
+
+    .modal-secondary {
+      background: #ffffff;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    .review-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.26);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 35;
+    }
+
+    .review-overlay.active {
+      display: flex;
+    }
+
+    .review-modal {
+      width: 100%;
+      max-width: 560px;
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+    }
+
+    .review-modal-inner {
+      padding: 20px;
+    }
+
+    .review-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .review-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #dbeafe;
+      flex-shrink: 0;
+    }
+
+    .review-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .review-heading {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .review-copy {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #374151;
+    }
+
+    .review-progress {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .review-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #c7d2fe;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+
+    .review-dot:nth-child(2) { animation-delay: 0.15s; }
+    .review-dot:nth-child(3) { animation-delay: 0.3s; }
+
+    .standard-text-overlay,
+    .name-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 32;
+    }
+
+    .standard-text-overlay.active,
+    .name-overlay.active {
+      display: flex;
+    }
+
+    .standard-text-modal,
+    .name-modal {
+      width: 100%;
+      max-width: 560px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .standard-text-top,
+    .name-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 18px 14px 18px;
+    }
+
+    .standard-text-title,
+    .name-title {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 400;
+      color: #111827;
+    }
+
+    .standard-text-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 2px solid #4f79ea;
+      font-size: 24px;
+      line-height: 1;
+      color: #6b7280;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .standard-text-body,
+    .name-body {
+      padding: 0 18px 18px 18px;
+    }
+
+    .standard-text-label,
+    .name-label {
+      display: block;
+      margin: 0 0 8px 0;
+      font-size: 15px;
+      line-height: 1.3;
+      font-weight: 700;
+      color: #1d4ed8;
+    }
+
+    .standard-text-input {
+      width: 100%;
+      height: 50px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 18px;
+      color: #111827;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .name-input {
+      width: 100%;
+      height: 50px;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 0 18px;
+      font: inherit;
+      font-size: 18px;
+      color: #111827;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .standard-text-input::placeholder,
+    .name-input::placeholder {
+      color: #9ca3af;
+      opacity: 1;
+    }
+
+    .standard-text-input:focus,
+    .name-input:focus {
+      border-color: #7da2ff;
+      box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
+    }
+
+    .standard-text-error,
+    .name-error {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #b42318;
+    }
+
+    .standard-text-error.active,
+    .name-error.active {
+      display: block;
+    }
+
+    .name-copy {
+      margin: 0 0 16px 0;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #374151;
+    }
+
+    .name-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .name-submit-btn {
+      min-width: 170px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .name-submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .standard-text-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 102px;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.92);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      line-height: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 20;
+      white-space: nowrap;
+    }
+
+    .standard-text-toast.active {
+      opacity: 1;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @keyframes pulse {
+      0%, 80%, 100% {
+        transform: scale(0.85);
+        opacity: 0.45;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .experience-card summary {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+      }
+
+      .experience-pill {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .experience-title {
+        font-size: 22px;
+      }
+
+      .experience-subtitle {
+        font-size: 16px;
+      }
+
+      .instructions-wrap {
+        padding: 0 12px 20px 12px;
+      }
+
+      .viewport {
+        height: 560px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="experience-card">
+      <details id="chatAccordion">
+        <summary aria-controls="chatBody">
+          <div class="experience-copy">
+            <h2 class="experience-title">Chat Experience</h2>
+            <p class="experience-subtitle">For chat agents. Demonstrate your ability to handle customer conversations in a chat environment.</p>
+          </div>
+          <span class="experience-pill" data-open-label="Open Chat Experience" data-close-label="Hide Chat Experience">Open</span>
+        </summary>
+
+        <div class="experience-body" id="chatBody">
+          <div class="instructions-wrap">
+            <div class="instructions-card">
+              <div class="instructions-top">
+                <svg class="instructions-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#1d4ed8" stroke-width="2"></circle>
+                  <line x1="12" y1="10" x2="12" y2="16" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round"></line>
+                  <circle cx="12" cy="7" r="1.2" fill="#1d4ed8"></circle>
+                </svg>
+                <h3 class="instructions-title">Instructions:</h3>
+              </div>
+              <ol class="instructions-list">
+                <li>Review the customer’s reason for contact.</li>
+                <li>Type your response and press <strong>Enter</strong>.</li>
+                <li>Support the customer as you would on live chat.</li>
+                <li>Use Coach Chewy for guidance.</li>
+                <li>Click <strong>End</strong> to receive feedback.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="sim-shell">
+            <div class="viewport" id="viewport">
+              <div class="stage" id="stage">
+                <div class="app">
+                  <section class="panel chat-panel">
+                    <div class="chat-header">
+                      <div class="chat-header-row">
+                        <div class="chat-header-left">
+                          <svg class="sim-icon" viewBox="0 0 48 48" aria-hidden="true">
+                            <circle cx="24" cy="24" r="20" fill="#1d4ed8"></circle>
+                            <path d="M15 16.5h18c2.2 0 4 1.8 4 4v9c0 2.2-1.8 4-4 4H25l-7 5v-5h-3c-2.2 0-4-1.8-4-4v-9c0-2.2 1.8-4 4-4z" fill="#ffffff"></path>
+                          </svg>
+                          <div class="chat-header-title">Chewy Customer Simulator</div>
+                        </div>
+                        <button class="header-link" type="button" id="headerEndBtn">End</button>
+                      </div>
+                    </div>
+
+                    <div class="messages" id="messages">
+                      <div class="chat-started" id="chatStartedText"></div>
+                    </div>
+
+                    <div class="typing" id="typingIndicator">Customer is typing...</div>
+
+                    <div class="composer">
+                      <div class="composer-shell">
+                        <div class="composer-input-wrap">
+                          <textarea id="composer" placeholder="Type a message..."></textarea>
+                        </div>
+
+                        <div class="composer-footer">
+                          <div class="composer-footer-note">Shift + Return to add a new line</div>
+                          <button class="send-btn primary-active" type="button" id="sendBtn" aria-label="Send">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M3.4 20.6L21 12 3.4 3.4 3.3 10.1l12.1 1.9-12.1 1.9z"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="standard-text-toast" id="standardTextToast" aria-live="polite"></div>
+                    </div>
+
+                    <div class="modal-overlay" id="endModalOverlay" aria-hidden="true">
+                      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="endModalTitle">
+                        <div class="modal-top">
+                          <h2 class="modal-title" id="endModalTitle">Do you want to end the chat?</h2>
+                          <button class="modal-close" type="button" id="closeModalBtn" aria-label="Close">×</button>
+                        </div>
+                        <div class="modal-body">
+                          <p class="modal-copy">You'll still be able to view your chat and get coaching feedback.</p>
+                          <div class="modal-actions">
+                            <button class="modal-primary" type="button" id="confirmEndBtn">End Chat</button>
+                            <button class="modal-secondary" type="button" id="continueChatBtn">Continue Chat</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="standard-text-overlay" id="standardTextOverlay" aria-hidden="true">
+                      <div class="standard-text-modal" role="dialog" aria-modal="true" aria-labelledby="standardTextTitle">
+                        <div class="standard-text-top">
+                          <h2 class="standard-text-title" id="standardTextTitle">Standard Text</h2>
+                          <button class="standard-text-close" type="button" id="standardTextCloseBtn" aria-label="Close">×</button>
+                        </div>
+                        <div class="standard-text-body">
+                          <label class="standard-text-label" for="standardTextInput">Search Standard Text</label>
+                          <input
+                            class="standard-text-input"
+                            id="standardTextInput"
+                            type="text"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Enter hotkey to search for standard text"
+                          />
+                          <div class="standard-text-error" id="standardTextError">Hotkey not found. Try de5, de6, or e3.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="name-overlay" id="nameOverlay" aria-hidden="true">
+                      <div class="name-modal" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
+                        <div class="name-top">
+                          <h2 class="name-title" id="nameModalTitle">Before you begin</h2>
+                        </div>
+                        <div class="name-body">
+                          <p class="name-copy">Your full name could not be loaded automatically. Enter your full name to begin this chat simulation.</p>
+                          <label class="name-label" for="nameInput">Agent full name:</label>
+                          <input
+                            class="name-input"
+                            id="nameInput"
+                            type="text"
+                            autocomplete="name"
+                            spellcheck="false"
+                            placeholder="Enter your first name and last name"
+                          />
+                          <div class="name-error" id="nameError">Please enter your full name using first name and last name.</div>
+                          <div class="name-actions">
+                            <button class="name-submit-btn" type="button" id="nameSubmitBtn">Start Chat</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="review-overlay" id="reviewOverlay" aria-hidden="true">
+                      <div class="review-modal" role="status" aria-live="polite">
+                        <div class="review-modal-inner">
+                          <div class="review-top">
+                            <div class="review-avatar" aria-hidden="true">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <h2 class="review-heading">Generating coaching feedback...</h2>
+                          </div>
+                          <p class="review-copy">Coach Chewy is reviewing your chat now. Please wait while your guidance panel updates with feedback.</p>
+                          <div class="review-progress" aria-hidden="true">
+                            <div class="review-dot"></div>
+                            <div class="review-dot"></div>
+                            <div class="review-dot"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <aside class="panel guide-panel">
+                    <div class="guide-header">
+                      <div class="guide-header-row">
+                        <div class="guide-header-left">
+                          <div class="coach-avatar" aria-hidden="true">
+                            <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                          </div>
+                          <div class="guide-title" id="rightPaneTitle">Coach Chewy Guidance</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="guide-scroll" id="guideScroll">
+                      <div class="guidance-shell" id="guidanceShell">
+                        <div class="section">
+                          <h2>Acknowledge and Personalize the Conversation</h2>
+                          <p>The customer is asking for the delivery status of an order and is worried Larry could run out of food.</p>
+                          <div class="blue-card">
+                            <div class="coach-avatar">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <div>
+                              <ul>
+                                <li>Greet Demarco and thank him for reaching out.</li>
+                                <li>Acknowledge the concern about Larry running out of food.</li>
+                                <li>Let him know you will look into the order and help make sure Larry is set.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+
+                        <div class="section">
+                          <h2>Confirm the Order Status and Verify the Address</h2>
+                          <p>The customer wants reassurance that the order is still on track.</p>
+                          <div class="blue-card">
+                            <div class="coach-avatar">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <div>
+                              <ul>
+                                <li>Reassure Demarco that it makes sense to check on the order.</li>
+                                <li>Explain that the package is still moving within the estimated delivery window.</li>
+                                <li>Ask him to confirm the shipping address before moving forward.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+
+                        <div class="section">
+                          <h2>Reinforce Confidence After Address Verification</h2>
+                          <p>The customer has confirmed the shipping address.</p>
+                          <div class="blue-card">
+                            <div class="coach-avatar">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <div>
+                              <ul>
+                                <li>Repeat the address clearly and confirm everything looks accurate.</li>
+                                <li>Use confident language to reassure the customer the order is still on track.</li>
+                                <li>Keep the explanation simple, clear, and easy to follow.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+
+                        <div class="section">
+                          <h2>Use Standard Text to Reassure the Customer About What Happens Next</h2>
+                          <p>Now is the right time to use the prepared order-tracking response and explain what Demarco should do if Larry’s food does not arrive on time.</p>
+                          <div class="blue-card">
+                            <div class="coach-avatar">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <div>
+                              <ul>
+                                <li>Press <strong>F8</strong> to open <strong>Standard Text</strong>.</li>
+                                <li>Enter Hot Key <strong>DE6</strong> and press <strong>Enter</strong>.</li>
+                                <li>Personalize the response before sending it.
+                                  <ul>
+                                    <li>Replace <strong>"your package"</strong> with <strong>"Larry’s food"</strong>.</li>
+                                  </ul>
+                                </li>
+                                <li>Verify that the message:
+                                  <ul>
+                                    <li>Validates the question and reinforces that Demarco did the right thing by checking.</li>
+                                    <li>Reassures Demarco that everything still looks on track for Tuesday.</li>
+                                    <li>Clearly explains what to do next if Larry’s food does not arrive by Tuesday.</li>
+                                  </ul>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
+
+                        <div class="section">
+                          <h2>Close the Conversation with Support</h2>
+                          <p>The customer feels reassured and has what they need.</p>
+                          <div class="blue-card">
+                            <div class="coach-avatar">
+                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                            </div>
+                            <div>
+                              <ul>
+                                <li>Reinforce that Larry’s food is currently on track.</li>
+                                <li>End with a warm, confident closing.</li>
+                                <li>Offer any additional help before ending the chat.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="loading-shell" id="loadingShell">
+                        <div class="loading-card">
+                          <div class="loading-card-inner">
+                            <div class="loading-top">
+                              <div class="spinner" aria-hidden="true"></div>
+                              <h3 class="loading-title">Analyzing your chat...</h3>
+                            </div>
+                            <p class="loading-copy">Coach Chewy is reviewing your responses and building your feedback now. This can take a few seconds.</p>
+                            <div class="skeleton w90"></div>
+                            <div class="skeleton w75"></div>
+                            <div class="skeleton w60"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="feedback-shell" id="feedbackShell">
+                        <div id="feedbackCards"></div>
+
+                        <div class="feedback-card" id="summaryCard" style="display:none;">
+                          <div class="feedback-card-inner">
+                            <h3 class="feedback-card-title">Overall summary</h3>
+                            <p class="summary-text" id="summaryText"></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    const chatAccordion = document.getElementById("chatAccordion");
+
+    function syncAccordionLabel() {
+      const pill = chatAccordion.querySelector(".experience-pill");
+      if (!pill) return;
+      const openLabel = pill.getAttribute("data-open-label") || "Open";
+      const closeLabel = pill.getAttribute("data-close-label") || "Hide";
+      pill.textContent = chatAccordion.open ? closeLabel : openLabel;
+    }
+
+    const SESSION_BASE = "https://1ujjg47gt4.execute-api.us-east-2.amazonaws.com/default";
+    const CHAT_API_URL = SESSION_BASE + "/chat-turn";
+    const EVAL_API_URL = SESSION_BASE + "/evaluate";
+    const SAVE_API_URL = SESSION_BASE + "/coaching";
+
+    const DEFAULT_SCENARIO_ID = "on_time_delivery_no_partial_refund_needed";
+    const STORAGE_KEY = "ccs_coaching:on_time_delivery_no_partial_refund_needed:chat";
+    const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
+    const AGENT_ID_STORAGE_KEY = "ccs_agentId";
+
+    const SCENARIO_ID = DEFAULT_SCENARIO_ID;
+    const SCENARIO_LABEL = "Scenario 1: On Time Delivery, No partial refund Needed";
+
+    const STANDARD_TEXT_MAP = {
+      de5: "I'm sorry for the delay of your order. I know how important timely deliveries are and we want to ensure you and PETNAME are taken care of. I’ve refunded $XX to your PAYMENT ending in -XXXX to help with a local purchase in the meantime, and it should appear in your account within 3-6 days.",
+      de6: "I understand how important it is to receive your package on time, and I want to make sure you feel fully supported while we sort this out. I have checked the tracking details, and it looks like your package is still moving as expected and remains within the estimated delivery window. If you follow the tracking link here [INSERT TRACKING], you can track it more closely. To give you a clearer picture, orders typically ship within 48 hours, and once they do, they usually arrive within 1-3 days. If your order doesn't arrive within this expected timeframe, please reach back out to us and we'll be more than happy to provide additional support.",
+      e3: "It's been a moment since we've heard from you. Would you like to continue with our chat?"
+    };
+
+    const STEP_CONFIG = [
+      {
+        id: 0,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["sorry", "understand", "happy to help", "help you", "look into", "check"]) && containsAny(m, ["food", "pet", "larry", "worry", "concern"]);
+        }
+      },
+      {
+        id: 1,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["address", "verify", "confirm", "shipping"]) || containsAny(m, ["track", "tracking", "tuesday", "delivery date"]);
+        }
+      },
+      {
+        id: 2,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["confirmed", "verified", "looks correct", "everything looks correct", "address", "elm street", "el paso"]);
+        }
+      },
+      {
+        id: 3,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["tracking details", "estimated delivery window", "larry’s food", "larry's food", "1-3 days", "1 to 3 days", "track it more closely"]);
+        }
+      },
+      {
+        id: 4,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["if it doesn't arrive", "if it does not arrive", "if it doesn’t arrive", "reach back out", "contact us", "let us know", "tuesday"]);
+        }
+      },
+      {
+        id: 5,
+        successCheck(message) {
+          const m = message.toLowerCase();
+          return containsAny(m, ["anything else", "all set", "glad to help", "on track", "help with today", "larry’s food is on its way", "larry's food is on its way"]);
+        }
+      }
+    ];
+
+    const FALLBACK_CUSTOMER_REPLIES = [
+      "Thank you. I just want to be sure it gets here on time.",
+      "1234 Elm Street in El Paso.",
+      "Perfect. Thanks for checking that.",
+      "What happens if this order doesn’t arrive on time?",
+      "Perfect, that helps a lot."
+    ];
+
+    const viewportEl = document.getElementById("viewport");
+    const stageEl = document.getElementById("stage");
+    const messagesEl = document.getElementById("messages");
+    const composerEl = document.getElementById("composer");
+    const sendBtn = document.getElementById("sendBtn");
+    const headerEndBtn = document.getElementById("headerEndBtn");
+    const typingIndicator = document.getElementById("typingIndicator");
+    const guidanceShell = document.getElementById("guidanceShell");
+    const feedbackShell = document.getElementById("feedbackShell");
+    const loadingShell = document.getElementById("loadingShell");
+    const rightPaneTitle = document.getElementById("rightPaneTitle");
+    const feedbackCardsEl = document.getElementById("feedbackCards");
+    const summaryCardEl = document.getElementById("summaryCard");
+    const summaryTextEl = document.getElementById("summaryText");
+    const endModalOverlay = document.getElementById("endModalOverlay");
+    const reviewOverlay = document.getElementById("reviewOverlay");
+    const confirmEndBtn = document.getElementById("confirmEndBtn");
+    const continueChatBtn = document.getElementById("continueChatBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    const standardTextOverlay = document.getElementById("standardTextOverlay");
+    const standardTextInput = document.getElementById("standardTextInput");
+    const standardTextError = document.getElementById("standardTextError");
+    const standardTextCloseBtn = document.getElementById("standardTextCloseBtn");
+    const standardTextToast = document.getElementById("standardTextToast");
+
+    const nameOverlay = document.getElementById("nameOverlay");
+    const nameInput = document.getElementById("nameInput");
+    const nameError = document.getElementById("nameError");
+    const nameSubmitBtn = document.getElementById("nameSubmitBtn");
+
+    const chatStartedText = document.getElementById("chatStartedText");
+
+    const DESIGN_WIDTH = 1280;
+    const DESIGN_HEIGHT = 720;
+
+    const initialTranscript = [
+      { role: "assistant", content: "Hi. I’m reaching out because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food.", label: "Customer", meta: "Demarco" }
+    ];
+
+    let transcript = JSON.parse(JSON.stringify(initialTranscript));
+    let currentStep = 0;
+    let chatEnded = false;
+    let isEvaluating = false;
+    let sessionStarted = false;
+    let agentName = "";
+    let agentId = "";
+    let sessionId = null;
+    let startedAt = null;
+    let endedAt = null;
+
+    function safeParse(json) {
+      try { return JSON.parse(json); } catch (_) { return null; }
+    }
+
+    function savePersisted(record) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (_) {}
+    }
+
+    function loadPersisted() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? safeParse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function fitStage() {
+      const viewportWidth = viewportEl.clientWidth || window.innerWidth;
+      const viewportHeight = viewportEl.clientHeight || DESIGN_HEIGHT;
+      const scale = Math.min(viewportWidth / DESIGN_WIDTH, viewportHeight / DESIGN_HEIGHT);
+      const scaledWidth = DESIGN_WIDTH * scale;
+      const scaledHeight = DESIGN_HEIGHT * scale;
+      const offsetX = (viewportWidth - scaledWidth) / 2;
+      const offsetY = (viewportHeight - scaledHeight) / 2;
+      stageEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+
+    function autoResizeTextarea() {
+      composerEl.style.height = "auto";
+      composerEl.style.height = Math.min(composerEl.scrollHeight, 110) + "px";
+    }
+
+    function formatStartedTime() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const suffix = hours >= 12 ? "p.m." : "a.m.";
+      hours = hours % 12 || 12;
+      return `Chat started at ${hours}:${minutes} ${suffix}.`;
+    }
+
+    function formatMessageTime() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const suffix = hours >= 12 ? "p.m." : "a.m.";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${suffix}`;
+    }
+
+    function formatTrainingDate(isoString) {
+      const date = isoString ? new Date(isoString) : new Date();
+      if (Number.isNaN(date.getTime())) return "";
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+
+    function formatTrainingTime(isoString) {
+      const date = isoString ? new Date(isoString) : new Date();
+      if (Number.isNaN(date.getTime())) return "";
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const suffix = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${suffix}`;
+    }
+
+    function hasFullName(value) {
+      return value.trim().split(/\s+/).filter(Boolean).length >= 2;
+    }
+
+    function renderTranscript() {
+      messagesEl.querySelectorAll(".message-row").forEach((el) => el.remove());
+      transcript.forEach((item) => appendMessage(item.role, item.content, item.label, item.meta, false));
+      scrollMessagesToBottom();
+    }
+
+    function appendMessage(role, text, label, meta = "", shouldScroll = true) {
+      const row = document.createElement("div");
+      row.className = `message-row ${mapRoleToClass(role)}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      row.appendChild(bubble);
+
+      const metaEl = document.createElement("div");
+      metaEl.className = "meta";
+
+      if (role === "assistant") {
+        metaEl.textContent = meta ? `${meta} ${formatMessageTime()}` : formatMessageTime();
+      } else if (role === "agent") {
+        metaEl.textContent = formatMessageTime();
+      } else {
+        metaEl.textContent = label || "System";
+      }
+
+      row.appendChild(metaEl);
+      messagesEl.appendChild(row);
+
+      if (shouldScroll) scrollMessagesToBottom();
+    }
+
+    function mapRoleToClass(role) {
+      if (role === "assistant") return "customer";
+      if (role === "agent") return "agent";
+      if (role === "system") return "system";
+      if (role === "user") return "customer";
+      return "customer";
+    }
+
+    function scrollMessagesToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function setTyping(isTyping) {
+      typingIndicator.classList.toggle("active", isTyping);
+    }
+
+    function containsAny(text, phrases) {
+      return phrases.some((phrase) => text.includes(phrase));
+    }
+
+    function transcriptToEvalText() {
+      return transcript
+        .map((turn) => {
+          if (turn.role === "agent") return `Agent: ${turn.content}`;
+          if (turn.role === "assistant") return `Customer: ${turn.content}`;
+          return `${turn.label || "System"}: ${turn.content}`;
+        })
+        .join("\n");
+    }
+
+    function normalizeEvaluation(obj) {
+      if (!obj || typeof obj !== "object") return null;
+
+      if (Array.isArray(obj.quality_checklist) && typeof obj.summary === "string") return obj;
+
+      if (obj.coaching && typeof obj.coaching === "object") {
+        const c = obj.coaching;
+        if (Array.isArray(c.quality_checklist) && typeof c.summary === "string") return c;
+      }
+
+      if (obj.evaluation && typeof obj.evaluation === "object") {
+        const e = obj.evaluation;
+        if (Array.isArray(e.quality_checklist) && typeof e.summary === "string") return e;
+      }
+
+      return null;
+    }
+
+    function renderFeedbackFromEvaluation(evaluation) {
+      feedbackCardsEl.innerHTML = "";
+
+      const checklist = Array.isArray(evaluation?.quality_checklist) ? evaluation.quality_checklist : [];
+      const summary = typeof evaluation?.summary === "string" ? evaluation.summary.trim() : "";
+
+      checklist.forEach((categoryObj) => {
+        const category = String(categoryObj?.category || "Category");
+        const behaviors = Array.isArray(categoryObj?.behaviors) ? categoryObj.behaviors : [];
+
+        const card = document.createElement("div");
+        card.className = "feedback-card";
+
+        const inner = document.createElement("div");
+        inner.className = "feedback-card-inner";
+
+        const heading = document.createElement("h3");
+        heading.className = "feedback-card-title";
+        heading.textContent = category;
+
+        const list = document.createElement("ul");
+        list.className = "behavior-list";
+
+        behaviors.forEach((behaviorObj) => {
+          const li = document.createElement("li");
+          li.className = "behavior-item";
+
+          const textSpan = document.createElement("span");
+          textSpan.textContent = String(behaviorObj?.behavior || "");
+
+          const iconSpan = document.createElement("span");
+          const observed = !!behaviorObj?.observed;
+          iconSpan.className = `checkmark ${observed ? "ok" : "no"}`;
+          iconSpan.textContent = observed ? "✅" : "❌";
+
+          li.appendChild(textSpan);
+          li.appendChild(iconSpan);
+          list.appendChild(li);
+        });
+
+        inner.appendChild(heading);
+        inner.appendChild(list);
+        card.appendChild(inner);
+        feedbackCardsEl.appendChild(card);
+      });
+
+      if (summary) {
+        summaryTextEl.textContent = summary;
+        summaryCardEl.style.display = "block";
+      } else {
+        summaryTextEl.textContent = "";
+        summaryCardEl.style.display = "none";
+      }
+    }
+
+    function renderFallbackFeedback() {
+      const agentMessages = transcript
+        .filter((turn) => turn.role === "agent")
+        .map((turn) => turn.content.toLowerCase());
+      const joined = agentMessages.join(" \n ");
+
+      const fallback = {
+        quality_checklist: [
+          {
+            category: "Acknowledge & Personalize",
+            behaviors: [
+              { behavior: "Used the customer’s name at least once", observed: containsAny(joined, ["demarco"]) },
+              { behavior: "Referenced the pet's name Larry at least once", observed: containsAny(joined, ["larry"]) },
+              { behavior: "Acknowledged concern about Larry running out of food", observed: containsAny(joined, ["running out of food", "worried", "concern", "larry"]) && containsAny(joined, ["sorry", "understand", "worry", "concern"]) },
+              { behavior: "Asked a clarifying question such as address verification", observed: joined.includes("?") || containsAny(joined, ["confirm", "verify", "address"]) }
+            ]
+          },
+          {
+            category: "Trust & Confidence",
+            behaviors: [
+              { behavior: "Used clear, understandable language", observed: agentMessages.length > 0 },
+              { behavior: "Used professional language such as thank you or please", observed: containsAny(joined, ["thank you", "thanks", "please"]) },
+              { behavior: "Focused on what can be done rather than what cannot", observed: containsAny(joined, ["i can", "we can", "i will", "we will", "let me"]) },
+              { behavior: "Used confident statements when explaining order status", observed: containsAny(joined, ["on track", "looks correct", "verified", "arriving", "everything looks correct"]) }
+            ]
+          },
+          {
+            category: "Reassurance",
+            behaviors: [
+              { behavior: "Reassured the customer that checking was the right thing to do", observed: containsAny(joined, ["did the right thing", "glad you checked", "makes sense to check", "absolutely did the right thing"]) }
+            ]
+          },
+          {
+            category: "Ownership & Effortless",
+            behaviors: [
+              { behavior: "Clearly explained what to do if the order does not arrive by Tuesday", observed: containsAny(joined, ["if it doesn't arrive", "if it doesn’t arrive", "if it does not arrive", "reach back out", "contact us", "let us know", "tuesday"]) }
+            ]
+          }
+        ],
+        summary: "Take a moment to review the feedback and think about how you’ll apply it on your next customer chat interaction."
+      };
+
+      renderFeedbackFromEvaluation(fallback);
+      return fallback;
+    }
+
+    function showFeedbackMode() {
+      hideLoadingState();
+      feedbackShell.classList.add("active");
+      guidanceShell.style.display = "none";
+      rightPaneTitle.textContent = "Here's what I noticed...";
+    }
+
+    function showGuidanceMode() {
+      hideLoadingState();
+      feedbackShell.classList.remove("active");
+      guidanceShell.style.display = "block";
+      rightPaneTitle.textContent = "Coach Chewy Guidance";
+    }
+
+    function showLoadingState() {
+      feedbackShell.classList.remove("active");
+      guidanceShell.style.display = "none";
+      loadingShell.classList.add("active");
+      rightPaneTitle.textContent = "Here's what I noticed...";
+    }
+
+    function hideLoadingState() {
+      loadingShell.classList.remove("active");
+    }
+
+    function openEndModal() {
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+      endModalOverlay.classList.add("active");
+      endModalOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeEndModal() {
+      endModalOverlay.classList.remove("active");
+      endModalOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function showReviewOverlay() {
+      reviewOverlay.classList.add("active");
+      reviewOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function hideReviewOverlay() {
+      reviewOverlay.classList.remove("active");
+      reviewOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function isStandardTextOpen() {
+      return standardTextOverlay.classList.contains("active");
+    }
+
+    function isNameModalOpen() {
+      return nameOverlay.classList.contains("active");
+    }
+
+    function openStandardTextModal() {
+      if (!sessionStarted || chatEnded || isEvaluating || isNameModalOpen()) return;
+      closeEndModal();
+      standardTextOverlay.classList.add("active");
+      standardTextOverlay.setAttribute("aria-hidden", "false");
+      standardTextInput.value = "";
+      standardTextError.classList.remove("active");
+      setTimeout(() => standardTextInput.focus(), 0);
+    }
+
+    function closeStandardTextModal() {
+      standardTextOverlay.classList.remove("active");
+      standardTextOverlay.setAttribute("aria-hidden", "true");
+      standardTextError.classList.remove("active");
+      composerEl.focus();
+    }
+
+    function showStandardTextToast(message) {
+      standardTextToast.textContent = message;
+      standardTextToast.classList.add("active");
+      clearTimeout(showStandardTextToast._timer);
+      showStandardTextToast._timer = setTimeout(() => {
+        standardTextToast.classList.remove("active");
+      }, 1800);
+    }
+
+    function insertStandardTextFromHotkey() {
+      const hotkey = standardTextInput.value.trim().toLowerCase();
+      const mappedText = STANDARD_TEXT_MAP[hotkey];
+
+      if (!mappedText) {
+        standardTextError.classList.add("active");
+        return;
+      }
+
+      standardTextError.classList.remove("active");
+      composerEl.value = mappedText;
+      autoResizeTextarea();
+      closeStandardTextModal();
+      showStandardTextToast(`Standard text inserted: ${hotkey.toUpperCase()}`);
+    }
+
+    function openNameModal() {
+      if (sessionStarted) return;
+      closeEndModal();
+      closeStandardTextModal();
+      nameOverlay.classList.add("active");
+      nameOverlay.setAttribute("aria-hidden", "false");
+      nameError.classList.remove("active");
+      setTimeout(() => nameInput.focus(), 0);
+    }
+
+    function closeNameModal() {
+      nameOverlay.classList.remove("active");
+      nameOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function getScormApi2004() {
+      const MAX_TRIES = 15;
+      const candidates = [window, window.parent, window.top];
+
+      for (let i = 0; i < candidates.length; i++) {
+        let current = candidates[i];
+        let tries = 0;
+
+        while (current && tries < MAX_TRIES) {
+          try {
+            if (current.API_1484_11) return current.API_1484_11;
+            if (current.parent && current.parent !== current) {
+              current = current.parent;
+              tries++;
+            } else {
+              break;
+            }
+          } catch (e) {
+            break;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function normalizeLearnerName(rawName) {
+      const value = String(rawName || "").trim();
+      if (!value) return "";
+
+      if (value.includes(",")) {
+        const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          return `${parts.slice(1).join(" ")} ${parts[0]}`.replace(/\s+/g, " ").trim();
+        }
+      }
+
+      return value.replace(/\s+/g, " ").trim();
+    }
+
+    function readScormLearnerInfo() {
+      try {
+        const api = getScormApi2004();
+        if (!api || typeof api.GetValue !== "function") {
+          return { name: "", id: "" };
+        }
+
+        const rawName = api.GetValue("cmi.learner_name") || "";
+        const rawId = api.GetValue("cmi.learner_id") || "";
+
+        return {
+          name: normalizeLearnerName(rawName),
+          id: String(rawId || "").trim()
+        };
+      } catch (e) {
+        return { name: "", id: "" };
+      }
+    }
+
+    function getAgentIdentity() {
+      const storedName = localStorage.getItem(AGENT_NAME_STORAGE_KEY) || "";
+      const storedId = localStorage.getItem(AGENT_ID_STORAGE_KEY) || "";
+      const scormInfo = readScormLearnerInfo();
+
+      const resolvedName =
+        String(agentName || "").trim() ||
+        String(nameInput.value || "").trim() ||
+        scormInfo.name ||
+        storedName;
+
+      const resolvedId =
+        String(agentId || "").trim() ||
+        scormInfo.id ||
+        storedId ||
+        resolvedName ||
+        "unknown";
+
+      if (resolvedName) localStorage.setItem(AGENT_NAME_STORAGE_KEY, resolvedName);
+      if (resolvedId) localStorage.setItem(AGENT_ID_STORAGE_KEY, resolvedId);
+
+      return {
+        agentId: resolvedId,
+        agentName: resolvedName || "Unknown Agent"
+      };
+    }
+
+    function beginChatSession(resolvedName, resolvedId) {
+      const finalName = String(resolvedName || nameInput.value || "").trim();
+      const finalId = String(resolvedId || "").trim();
+
+      if (!hasFullName(finalName)) {
+        nameError.classList.add("active");
+        return;
+      }
+
+      agentName = finalName;
+      agentId = finalId || finalName;
+
+      localStorage.setItem(AGENT_NAME_STORAGE_KEY, agentName);
+      localStorage.setItem(AGENT_ID_STORAGE_KEY, agentId);
+
+      sessionStarted = true;
+      sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      startedAt = new Date().toISOString();
+
+      nameError.classList.remove("active");
+      closeNameModal();
+      setChatEndedState(false);
+      chatStartedText.textContent = formatStartedTime();
+      composerEl.focus();
+    }
+
+    function tryAutoStartFromScorm() {
+      const scormInfo = readScormLearnerInfo();
+
+      if (hasFullName(scormInfo.name)) {
+        nameInput.value = scormInfo.name;
+        beginChatSession(scormInfo.name, scormInfo.id);
+        return true;
+      }
+
+      if (scormInfo.name) {
+        nameInput.value = scormInfo.name;
+      }
+
+      return false;
+    }
+
+    function buildQualityBehaviorsFromEvaluation(evaluation) {
+      const qc = Array.isArray(evaluation?.quality_checklist) ? evaluation.quality_checklist : [];
+      return qc.map((cat) => ({
+        category: cat && cat.category ? String(cat.category).trim() : "",
+        behaviors: Array.isArray(cat?.behaviors)
+          ? cat.behaviors.map((b) => ({
+              behavior: b && b.behavior ? String(b.behavior).trim() : "",
+              observed: !!(b && b.observed)
+            }))
+          : []
+      }));
+    }
+
+    function buildGroupedBehaviorBuckets(evaluation) {
+      const qualityBehaviors = buildQualityBehaviorsFromEvaluation(evaluation);
+
+      const areasOfOpportunity = qualityBehaviors
+        .map((categoryObj) => {
+          const missedBehaviors = categoryObj.behaviors
+            .filter((behaviorObj) => !behaviorObj.observed && behaviorObj.behavior)
+            .map((behaviorObj) => behaviorObj.behavior);
+
+          return {
+            category: categoryObj.category,
+            missedBehaviors
+          };
+        })
+        .filter((categoryObj) => categoryObj.category && categoryObj.missedBehaviors.length > 0);
+
+      const observedBehaviors = qualityBehaviors
+        .map((categoryObj) => {
+          const exhibitedBehaviors = categoryObj.behaviors
+            .filter((behaviorObj) => behaviorObj.observed && behaviorObj.behavior)
+            .map((behaviorObj) => behaviorObj.behavior);
+
+          return {
+            category: categoryObj.category,
+            observedBehaviors: exhibitedBehaviors
+          };
+        })
+        .filter((categoryObj) => categoryObj.category && categoryObj.observedBehaviors.length > 0);
+
+      return {
+        qualityBehaviors,
+        areasOfOpportunity,
+        observedBehaviors
+      };
+    }
+
+    function buildReportingPayload(evaluation, errorText = "") {
+      const ident = getAgentIdentity();
+      const resolvedEndedAt = endedAt || new Date().toISOString();
+      const resolvedStartedAt = startedAt || resolvedEndedAt;
+
+      const {
+        qualityBehaviors,
+        areasOfOpportunity,
+        observedBehaviors
+      } = buildGroupedBehaviorBuckets(evaluation);
+
+      const coachSummaryText = typeof evaluation?.summary === "string" ? evaluation.summary.trim() : "";
+
+      const totalObservedBehaviors = qualityBehaviors.reduce((sum, categoryObj) => {
+        return sum + categoryObj.behaviors.filter((behaviorObj) => behaviorObj.observed).length;
+      }, 0);
+
+      const totalMissedBehaviors = qualityBehaviors.reduce((sum, categoryObj) => {
+        return sum + categoryObj.behaviors.filter((behaviorObj) => !behaviorObj.observed).length;
+      }, 0);
+
+      const opportunityCategories = areasOfOpportunity.map((item) => item.category);
+
+      return {
+        sessionId: sessionId || ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())),
+        agentId: ident.agentId,
+        agentName: ident.agentName,
+        scenarioId: SCENARIO_ID,
+        scenarioLabel: SCENARIO_LABEL,
+        completionStatus: "Completed",
+        trainingDate: formatTrainingDate(resolvedEndedAt),
+        trainingTime: formatTrainingTime(resolvedEndedAt),
+        startedAt: resolvedStartedAt,
+        endedAt: resolvedEndedAt,
+        transcript: transcriptToEvalText(),
+        coachSummaryText,
+        qualityBehaviors,
+        areasOfOpportunity,
+        observedBehaviors,
+        opportunityCategories,
+        totalObservedBehaviors,
+        totalMissedBehaviors,
+        errorText: errorText || ""
+      };
+    }
+
+    async function fetchJSON(url, opts = {}, timeoutMs = 45000) {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), timeoutMs);
+
+      try {
+        const res = await fetch(url, { mode: "cors", cache: "no-store", ...opts, signal: ctrl.signal });
+        const text = await res.text().catch(() => "");
+        let data;
+        try { data = text ? JSON.parse(text) : {}; } catch { data = { _raw: text }; }
+
+        if (!res.ok) {
+          console.error("HTTP", res.status, text.slice(0, 1200));
+          return { error: true, status: res.status, body: text, data };
+        }
+
+        return data;
+      } catch (e) {
+        console.error("Fetch fail", e);
+        return { error: true, message: String(e) };
+      } finally {
+        clearTimeout(id);
+      }
+    }
+
+    async function saveCoachingRecord(payload) {
+      const res = await fetchJSON(SAVE_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }, 20000);
+
+      return !!(res && (res.ok === true || !res.error));
+    }
+
+    async function sendMessage() {
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+
+      const text = composerEl.value.trim();
+      if (!text) return;
+
+      composerEl.value = "";
+      autoResizeTextarea();
+
+      const agentTurn = { role: "agent", content: text, label: "Agent" };
+      transcript.push(agentTurn);
+      appendMessage(agentTurn.role, agentTurn.content, agentTurn.label);
+      setComposerState(true);
+
+      const currentConfig = STEP_CONFIG[Math.min(currentStep, STEP_CONFIG.length - 1)];
+      const stepPassed = currentConfig.successCheck(text);
+
+      if (stepPassed) {
+        currentStep = Math.min(currentStep + 1, STEP_CONFIG.length);
+      }
+
+      try {
+        const customerReply = await getCustomerReply(text, stepPassed);
+        const replyTurn = { role: "assistant", content: customerReply, label: "Customer", meta: "Demarco" };
+        transcript.push(replyTurn);
+        appendMessage("assistant", replyTurn.content, replyTurn.label, replyTurn.meta);
+      } catch (error) {
+        const errorTurn = {
+          role: "system",
+          content: "The chat service could not respond right now. Check your Lambda endpoint and try again.",
+          label: "System"
+        };
+        transcript.push(errorTurn);
+        appendMessage(errorTurn.role, errorTurn.content, errorTurn.label);
+      } finally {
+        setComposerState(false);
+      }
+    }
+
+    async function getCustomerReply(latestAgentMessage, stepPassed) {
+      setTyping(true);
+
+      if (!CHAT_API_URL) {
+        await wait(700);
+        setTyping(false);
+        return stepPassed
+          ? FALLBACK_CUSTOMER_REPLIES[Math.min(currentStep - 1, FALLBACK_CUSTOMER_REPLIES.length - 1)]
+          : "I’m still not totally sure what’s going on. Can you help me understand what happens next?";
+      }
+
+      const payload = {
+        scenarioId: SCENARIO_ID,
+        latestAgentMessage,
+        currentStep,
+        transcript: transcript.map((turn) => ({
+          role: normalizeRoleForApi(turn.role),
+          content: turn.content
+        }))
+      };
+
+      const response = await fetch(CHAT_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      setTyping(false);
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        throw new Error(`HTTP ${response.status}: ${errText}`);
+      }
+
+      const data = await response.json();
+      if (!data || !data.customerMessage) throw new Error("Missing customerMessage in response");
+
+      if (typeof data.currentStep === "number") {
+        currentStep = Math.min(Math.max(data.currentStep, 0), STEP_CONFIG.length);
+      }
+
+      return data.customerMessage;
+    }
+
+    async function getEvaluation() {
+      const evalResp = await fetchJSON(EVAL_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenario: SCENARIO_ID,
+          transcript: transcriptToEvalText()
+        })
+      }, 60000);
+
+      return normalizeEvaluation(evalResp);
+    }
+
+    function normalizeRoleForApi(role) {
+      if (role === "agent") return "user";
+      if (role === "assistant") return "assistant";
+      if (role === "user") return "assistant";
+      return "system";
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function setComposerState(isBusy) {
+      sendBtn.disabled = isBusy || !sessionStarted;
+      composerEl.disabled = isBusy || chatEnded || !sessionStarted;
+      sendBtn.classList.toggle("primary-active", !isBusy && !chatEnded && sessionStarted);
+      headerEndBtn.disabled = isBusy || !sessionStarted;
+    }
+
+    function setChatEndedState(ended) {
+      chatEnded = ended;
+      composerEl.disabled = ended || isEvaluating || !sessionStarted;
+      sendBtn.disabled = ended || isEvaluating || !sessionStarted;
+      sendBtn.classList.toggle("primary-active", !(ended || isEvaluating || !sessionStarted));
+      headerEndBtn.disabled = ended || isEvaluating || !sessionStarted;
+    }
+
+    function restorePersistedFeedback() {
+      const saved = loadPersisted();
+      if (!saved || !saved.coachHtml) return false;
+
+      feedbackCardsEl.innerHTML = saved.coachHtml;
+      if (saved.summaryText) {
+        summaryTextEl.textContent = saved.summaryText;
+        summaryCardEl.style.display = "block";
+      } else {
+        summaryTextEl.textContent = "";
+        summaryCardEl.style.display = "none";
+      }
+
+      showFeedbackMode();
+      return true;
+    }
+
+    async function completeEndChat() {
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+
+      closeEndModal();
+      isEvaluating = true;
+      setTyping(false);
+      setChatEndedState(true);
+      showReviewOverlay();
+      showLoadingState();
+      endedAt = new Date().toISOString();
+
+      let evaluation = null;
+      let errorText = "";
+
+      try {
+        evaluation = await getEvaluation();
+
+        if (evaluation) {
+          renderFeedbackFromEvaluation(evaluation);
+        } else {
+          errorText = "Unable to generate coaching from transcript.";
+          evaluation = renderFallbackFeedback();
+        }
+      } catch (error) {
+        errorText = String(error && error.message ? error.message : error);
+        evaluation = renderFallbackFeedback();
+      } finally {
+        isEvaluating = false;
+        hideReviewOverlay();
+        setChatEndedState(true);
+        showFeedbackMode();
+      }
+
+      try {
+        const payload = buildReportingPayload(evaluation, errorText);
+        await saveCoachingRecord(payload);
+
+        savePersisted({
+          coachHtml: feedbackCardsEl.innerHTML,
+          summaryText: summaryTextEl.textContent
+        });
+      } catch (saveError) {
+        console.error("Failed to save coaching record", saveError);
+      }
+    }
+
+    chatAccordion.addEventListener("toggle", () => {
+      syncAccordionLabel();
+      if (chatAccordion.open) {
+        setTimeout(fitStage, 50);
+        setTimeout(fitStage, 200);
+        setTimeout(() => {
+          if (!sessionStarted) {
+            const autoStarted = tryAutoStartFromScorm();
+            if (!autoStarted) openNameModal();
+          }
+        }, 0);
+      }
+    });
+
+    syncAccordionLabel();
+
+    sendBtn.addEventListener("click", sendMessage);
+    headerEndBtn.addEventListener("click", openEndModal);
+    confirmEndBtn.addEventListener("click", completeEndChat);
+    continueChatBtn.addEventListener("click", closeEndModal);
+    closeModalBtn.addEventListener("click", closeEndModal);
+
+    standardTextCloseBtn.addEventListener("click", closeStandardTextModal);
+    nameSubmitBtn.addEventListener("click", () => beginChatSession());
+
+    standardTextOverlay.addEventListener("click", (event) => {
+      if (event.target === standardTextOverlay) closeStandardTextModal();
+    });
+
+    endModalOverlay.addEventListener("click", (event) => {
+      if (event.target === endModalOverlay) closeEndModal();
+    });
+
+    composerEl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    nameInput.addEventListener("input", () => {
+      nameError.classList.remove("active");
+    });
+
+    nameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        beginChatSession();
+      }
+    });
+
+    standardTextInput.addEventListener("input", () => {
+      standardTextError.classList.remove("active");
+    });
+
+    standardTextInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        insertStandardTextFromHotkey();
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeStandardTextModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (!chatAccordion.open) return;
+
+      if (isNameModalOpen()) return;
+
+      if (event.key === "F8") {
+        event.preventDefault();
+        openStandardTextModal();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        if (isStandardTextOpen()) {
+          event.preventDefault();
+          closeStandardTextModal();
+          return;
+        }
+
+        if (endModalOverlay.classList.contains("active")) {
+          event.preventDefault();
+          closeEndModal();
+        }
+      }
+    });
+
+    composerEl.addEventListener("input", autoResizeTextarea);
+    window.addEventListener("resize", fitStage);
+
+    const storedAgentName = localStorage.getItem(AGENT_NAME_STORAGE_KEY) || "";
+    const storedAgentId = localStorage.getItem(AGENT_ID_STORAGE_KEY) || "";
+
+    if (storedAgentName) {
+      nameInput.value = storedAgentName;
+      agentName = storedAgentName;
+    }
+
+    if (storedAgentId) {
+      agentId = storedAgentId;
+    }
+
+    renderTranscript();
+    showGuidanceMode();
+    setChatEndedState(false);
+    autoResizeTextarea();
+    hideReviewOverlay();
+    fitStage();
+    restorePersistedFeedback();
+
+    if (chatAccordion.open) {
+      const autoStarted = tryAutoStartFromScorm();
+      if (!autoStarted && !sessionStarted) {
+        openNameModal();
+      }
+    }
+  </script>
+</body>
+</html>
