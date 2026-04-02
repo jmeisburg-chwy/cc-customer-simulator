@@ -12,7 +12,6 @@ This project is a lightweight customer-service training simulator built around o
 - `ArticulateRise-ChatExperience.html`: Standalone chat simulator UI.
 - `ArticulateRise-VoiceExperience.html`: Standalone voice simulator UI.
 - `README.md`: Developer overview and setup notes.
-- `test`: Placeholder file. There is not currently a real automated test suite in this repo.
 
 ## How The System Works
 
