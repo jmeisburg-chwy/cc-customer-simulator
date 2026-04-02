@@ -780,6 +780,42 @@ function normalizeObservedBehaviors(input) {
   return [];
 }
 
+function normalizeEvaluationChecklist(input) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((categoryObj) => {
+      if (!categoryObj || typeof categoryObj !== "object") return null;
+
+      const category = String(categoryObj.category || "").trim();
+      const behaviorsInput = Array.isArray(categoryObj.behaviors) ? categoryObj.behaviors : [];
+
+      const behaviors = behaviorsInput
+        .map((behaviorObj) => {
+          if (!behaviorObj || typeof behaviorObj !== "object") return null;
+
+          const behavior = String(behaviorObj.behavior || "").trim();
+          if (!behavior) return null;
+
+          return {
+            behavior,
+            observed: !!behaviorObj.observed,
+            transcriptEvidence: String(behaviorObj.transcriptEvidence || "").trim(),
+            explanation: String(behaviorObj.explanation || "").trim()
+          };
+        })
+        .filter(Boolean);
+
+      if (!category && !behaviors.length) return null;
+
+      return {
+        category,
+        behaviors
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildObservedBehaviorsText(observedBehaviors) {
   if (!Array.isArray(observedBehaviors) || !observedBehaviors.length) return "";
 
@@ -1144,6 +1180,8 @@ You must output:
 Each behavior must have:
 - behavior (string)
 - observed (boolean)
+- transcriptEvidence (string)
+- explanation (string)
 
 2) summary: one short paragraph written in second person that tells the learner what they did well and what to work on next. Use "you" and "your." Keep it concise.
 
@@ -1172,9 +1210,11 @@ ${transcript}
                     additionalProperties: false,
                     properties: {
                       behavior: { type: "string" },
-                      observed: { type: "boolean" }
+                      observed: { type: "boolean" },
+                      transcriptEvidence: { type: "string" },
+                      explanation: { type: "string" }
                     },
-                    required: ["behavior", "observed"]
+                    required: ["behavior", "observed", "transcriptEvidence", "explanation"]
                   }
                 }
               },
@@ -1243,6 +1283,8 @@ ${transcript}
           _scenario: { id: scenario.id, label: scenario.label, title: scenario.title }
         });
       }
+
+      evaluationObj.quality_checklist = normalizeEvaluationChecklist(evaluationObj.quality_checklist);
 
       evaluationObj.summary = appendReflection(
         ensureCoachingSummary(evaluationObj.summary, scenario.title)
