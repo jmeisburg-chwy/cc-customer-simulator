@@ -185,6 +185,9 @@ const SCENARIOS = {
 
   on_time_delivery_no_partial_refund_needed: {
     id: "on_time_delivery_no_partial_refund_needed",
+    version: "1.0",
+    status: "active",
+    channels: ["chat", "voice"],
     label: "Scenario 1: On Time Delivery, No partial refund Needed",
     title: "Scenario 1: On Time Delivery, No partial refund Needed",
     voice: "cedar",
@@ -258,6 +261,365 @@ const SCENARIOS = {
         "Only ask 'What happens if this order doesn’t arrive on time?' if the agent has not already explained what to do if the order is delayed.",
       closingLine:
         "Thank you so much. That really puts my mind at ease. I appreciate your help."
+    },
+    catalog: {
+      label: "Scenario 1: On Time Delivery, No partial refund Needed",
+      title: "Scenario 1: On Time Delivery, No partial refund Needed",
+      shortTitle: "On Time Delivery",
+      description:
+        "The customer is calling to check when his package will arrive because he does not want his lizard, Larry, to run out of food.",
+      domain: "general_cx",
+      difficulty: "foundational",
+      tags: ["delivery", "reassurance", "no_refund"]
+    },
+    roles: {
+      learnerRole: "Customer Service Agent",
+      customerRole: "Demarco, Chewy Customer and pet parent to Larry the lizard"
+    },
+    customer: {
+      persona: {
+        name: "Demarco",
+        tone:
+          "Calm, polite, and mildly concerned about Larry running out of food. Becomes more relaxed as the agent provides reassurance.",
+        personality: ["calm", "polite", "mildly concerned", "non-confrontational"],
+        pace: "steady"
+      },
+      opening: {
+        chat:
+          "Hi. I’m calling because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food.",
+        voice:
+          "Hi. I’m calling because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food."
+      },
+      facts: {
+        customerName: "Demarco",
+        petName: "Larry",
+        product: "Lizard food",
+        address: "1234 Elm Street in El Paso, Texas",
+        estimatedDeliveryDate: "Tuesday",
+        rootCauseBelief:
+          "He is worried the package might not arrive in time and does not want Larry to run out of food."
+      },
+      behavior: {
+        shareOnlyIfAsked: ["address"],
+        allowedObjections: [
+          "I just want to be sure it gets here on time."
+        ],
+        conditionalFollowUps: [
+          {
+            id: "delay_question",
+            rule:
+              "Only ask 'What happens if this order doesn’t arrive on time?' if the agent has not already explained what to do if the order is delayed."
+          }
+        ],
+        closingLine:
+          "Thank you so much. That really puts my mind at ease. I appreciate your help.",
+        successSofteningRule:
+          "As the agent provides clarity and reassurance, become more relaxed and appreciative."
+      }
+    },
+    simulation: {
+      prompting: {
+        sharedBehaviorRules: [
+          "Do not ask a question if the agent already answered it clearly.",
+          "Do not repeat or restate a resolved concern.",
+          "Ask only one follow-up question at a time.",
+          "Prefer the fewest follow-up questions needed.",
+          "Do not ask redundant questions just to continue the conversation.",
+          "If the agent explains clearly and shows empathy and ownership, respond naturally with appreciation, reassurance, or a brief confirmation."
+        ],
+        chatSpecificRules: [
+          "Reply like a real customer in live chat.",
+          "Keep responses concise, usually 1 to 3 short sentences."
+        ],
+        voiceSpecificRules: [
+          "Let the learner fully finish speaking before you respond.",
+          "Treat short pauses, filler words, and thinking moments as part of the learner’s turn."
+        ]
+      },
+      beats: [
+        {
+          id: "acknowledge_and_personalize",
+          channel: "chat",
+          customerGoal: "Get reassurance that the order is being checked and Larry's needs are understood.",
+          agentGoal: "Acknowledge concern, personalize, and offer help.",
+          frontendGuidance: {
+            title: "Acknowledge and Personalize the Conversation",
+            body:
+              "The customer is asking for the delivery status of an order and is worried Larry could run out of food.",
+            bullets: [
+              "Greet Demarco and thank him for reaching out.",
+              "Acknowledge the concern about Larry running out of food.",
+              "Let him know you will look into the order and help make sure Larry is set."
+            ],
+            pauseAfter: true
+          }
+        },
+        {
+          id: "confirm_status_and_verify_address",
+          channel: "chat",
+          customerGoal: "Understand whether the order is still on track.",
+          agentGoal: "Reassure and verify the shipping address.",
+          frontendGuidance: {
+            title: "Confirm the Order Status and Verify the Address",
+            body: "The customer wants reassurance that the order is still on track.",
+            bullets: [
+              "Reassure Demarco that it makes sense to check on the order.",
+              "Explain that the package is still moving within the estimated delivery window.",
+              "Ask him to confirm the shipping address before moving forward."
+            ],
+            pauseAfter: true
+          }
+        },
+        {
+          id: "reinforce_confidence_after_address_verification",
+          channel: "chat",
+          customerGoal: "Hear clear confirmation after verification.",
+          agentGoal: "Repeat the address and confidently confirm the order is on track.",
+          frontendGuidance: {
+            title: "Reinforce Confidence After Address Verification",
+            body: "The customer has confirmed the shipping address.",
+            bullets: [
+              "Repeat the address clearly and confirm everything looks accurate.",
+              "Use confident language to reassure the customer the order is still on track.",
+              "Keep the explanation simple, clear, and easy to follow."
+            ],
+            pauseAfter: true
+          }
+        },
+        {
+          id: "use_standard_text_for_next_steps",
+          channel: "chat",
+          customerGoal: "Understand what happens if the order is delayed.",
+          agentGoal: "Reassure and clearly explain next steps if the delivery slips.",
+          frontendGuidance: {
+            title: "Use Standard Text to Reassure the Customer About What Happens Next",
+            body:
+              "Now is the right time to use the prepared order-tracking response and explain what Demarco should do if Larry’s food does not arrive on time.",
+            bullets: [
+              "Press F8 to open Standard Text.",
+              "Enter Hot Key DE6 and press Enter.",
+              "Personalize the response before sending.",
+              "Replace 'your package' with 'Larry’s food'.",
+              "Validate the question and reinforce that Demarco did the right thing by checking.",
+              "Reassure Demarco that everything still looks on track for Tuesday.",
+              "Clearly explain what to do next if Larry’s food does not arrive by Tuesday."
+            ],
+            pauseAfter: true
+          }
+        },
+        {
+          id: "close_with_support",
+          channel: "chat",
+          customerGoal: "Leave reassured and supported.",
+          agentGoal: "Close warmly, reinforce status, and offer further help.",
+          frontendGuidance: {
+            title: "Close the Conversation with Support",
+            body: "The customer feels reassured and has what they need.",
+            bullets: [
+              "Reinforce that Larry’s food is currently on track.",
+              "End with a warm, confident closing.",
+              "Offer any additional help before ending the chat."
+            ],
+            pauseAfter: false
+          }
+        },
+        {
+          id: "voice_greeting_and_personalization",
+          channel: "voice",
+          customerGoal: "Feel acknowledged and reassured early in the call.",
+          agentGoal: "Greet, personalize, and acknowledge the concern.",
+          frontendGuidance: {
+            title: "Greet the Customer and Personalize the Conversation",
+            body:
+              "The customer is calling because he needs to know when his package will arrive and is worried Larry could run out of food.",
+            bullets: [
+              "Greet Demarco and thank him for reaching out.",
+              "Reference Larry and the lizard food to personalize.",
+              "Acknowledge the concern about Larry running out of food.",
+              "Say you will check the order right away."
+            ],
+            pauseAfter: true
+          }
+        }
+      ],
+      stateModel: {
+        trackCurrentStep: true,
+        stepAdvanceStrategy: "frontend_keyword_checks",
+        fallbackReplies: {
+          chat: [
+            "Thank you. I just want to be sure it gets here on time.",
+            "1234 Elm Street in El Paso.",
+            "Perfect. Thanks for checking that.",
+            "What happens if this order doesn’t arrive on time?",
+            "Perfect, that helps a lot."
+          ]
+        }
+      }
+    },
+    coaching: {
+      successSummary:
+        "Uses the customer’s and Larry’s names, reassures the customer the order is on track, explains what to do if a delay occurs, verifies the address, avoids unnecessary compensation, and closes with additional support.",
+      evaluationCriteria:
+        "Evaluate only what the agent said in the transcript. Check whether each observable behavior occurred based on clear intent, not exact wording. Give credit when the behavior is clearly demonstrated even if phrased differently, and when a reasonable customer would understand the explanation or next steps. Do not require exact phrases or specific keywords. Mark a behavior as not observed only if it is completely missing or the explanation is unclear, incomplete, or could confuse the customer.",
+      qualityChecklist: [
+        {
+          category: "Acknowledge & Personalize",
+          behaviors: [
+            "Used the customer’s name at least once",
+            "Referenced the pet's name Larry at least once",
+            "Acknowledged concern about Larry running out of food",
+            "Asked a clarifying question (address verification qualifies)"
+          ]
+        },
+        {
+          category: "Trust & Confidence",
+          behaviors: [
+            "Used clear, understandable language",
+            "Used professional language such as thank you or please",
+            "Focused on what can be done rather than what cannot",
+            "Used confident statements when explaining order status"
+          ]
+        },
+        {
+          category: "Discuss Options",
+          behaviors: [
+            "Explained what the customer should do if the order does not arrive by the estimated delivery date"
+          ]
+        },
+        {
+          category: "Reassurance",
+          behaviors: [
+            "Reinforced that the order is in transit and on track",
+            "Provided calm, steady guidance about next steps"
+          ]
+        },
+        {
+          category: "Ownership & Effortless",
+          behaviors: [
+            "Used action-oriented language such as 'Let’s take a look'",
+            "Verified the shipping address",
+            "Set expectations for what to do if a delay occurs",
+            "Did not proactively offer compensation",
+            "Closed by offering additional help"
+          ]
+        }
+      ]
+    },
+    frontend: {
+      shared: {
+        experienceTitle: "Chewy Customer Simulator",
+        experienceSubtitle:
+          "Apply what you've learned in a practice customer interaction, then get coaching.",
+        introInstructions: [
+          "Review the customer’s reason for contact.",
+          "Support the customer as you would in a live interaction.",
+          "Use Coach Chewy for guidance.",
+          "End the experience to receive feedback."
+        ]
+      },
+      chat: {
+        enabled: true,
+        scenarioLabel: "Scenario 1: On Time Delivery, No partial refund Needed",
+        initialTranscript: [
+          {
+            role: "assistant",
+            label: "Customer",
+            meta: "Demarco",
+            content:
+              "Hi. I’m calling because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food."
+          }
+        ],
+        guideTitle: "Coach Chewy Guidance",
+        guideSections: [
+          {
+            title: "Acknowledge and Personalize the Conversation",
+            body:
+              "The customer is asking for the delivery status of an order and is worried Larry could run out of food.",
+            bullets: [
+              "Greet Demarco and thank him for reaching out.",
+              "Acknowledge the concern about Larry running out of food.",
+              "Let him know you will look into the order and help make sure Larry is set."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Confirm the Order Status and Verify the Address",
+            body: "The customer wants reassurance that the order is still on track.",
+            bullets: [
+              "Reassure Demarco that it makes sense to check on the order.",
+              "Explain that the package is still moving within the estimated delivery window.",
+              "Ask him to confirm the shipping address before moving forward."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Reinforce Confidence After Address Verification",
+            body: "The customer has confirmed the shipping address.",
+            bullets: [
+              "Repeat the address clearly and confirm everything looks accurate.",
+              "Use confident language to reassure the customer the order is still on track.",
+              "Keep the explanation simple, clear, and easy to follow."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Use Standard Text to Reassure the Customer About What Happens Next",
+            body:
+              "Now is the right time to use the prepared order-tracking response and explain what Demarco should do if Larry’s food does not arrive on time.",
+            bullets: [
+              "Press F8 to open Standard Text.",
+              "Enter Hot Key DE6 and press Enter.",
+              "Personalize the response before sending.",
+              "Replace 'your package' with 'Larry’s food'.",
+              "Validate the question and reinforce that Demarco did the right thing by checking.",
+              "Reassure Demarco that everything still looks on track for Tuesday.",
+              "Clearly explain what to do next if Larry’s food does not arrive by Tuesday."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Close the Conversation with Support",
+            body: "The customer feels reassured and has what they need.",
+            bullets: [
+              "Reinforce that Larry’s food is currently on track.",
+              "End with a warm, confident closing.",
+              "Offer any additional help before ending the chat."
+            ],
+            pauseAfter: false
+          }
+        ],
+        standardText: [
+          {
+            hotkey: "DE6",
+            template:
+              "I understand how important it is to receive your package on time, and I want to make sure you feel fully supported while we sort this out. I have checked the tracking details, and it looks like your package is still moving as expected and remains within the estimated delivery window. If you follow the tracking link here [INSERT TRACKING], you can track it more closely. To give you a clearer picture, orders typically ship within 48 hours, and once they do, they usually arrive within 1-3 days. If your order doesn't arrive within this expected timeframe, please reach back out to us and we'll be more than happy to provide additional support.",
+            notes: [
+              "Replace 'your package' with 'Larry’s food'."
+            ]
+          }
+        ]
+      },
+      voice: {
+        enabled: true,
+        defaultVoice: "cedar",
+        guideTopNote: "Begin by speaking your Chewy greeting.",
+        guideSections: [
+          {
+            title: "Greet the Customer and Personalize the Conversation",
+            body:
+              "The customer is calling because he needs to know when his package will arrive and is worried Larry could run out of food.",
+            bullets: [
+              "Greet Demarco and thank him for reaching out.",
+              "Reference Larry and the lizard food to personalize.",
+              "Acknowledge the concern about Larry running out of food.",
+              "Say you will check the order right away."
+            ],
+            pauseAfter: true
+          }
+        ],
+        endNote:
+          "After you finish supporting the customer, click End below to review your feedback."
+      }
     }
   },
 
@@ -403,6 +765,55 @@ const SCENARIOS = {
 function getScenario(scenarioIdRaw) {
   const scenarioId = String(scenarioIdRaw || "").trim();
   return SCENARIOS[scenarioId] || SCENARIOS[DEFAULT_SCENARIO_ID];
+}
+
+function buildScenarioClientConfig(s) {
+  const scenario = s && typeof s === "object" ? s : {};
+
+  return {
+    id: String(scenario.id || "").trim(),
+    label: String(scenario.label || "").trim(),
+    title: String(scenario.title || "").trim(),
+    channels: Array.isArray(scenario.channels) ? scenario.channels : [],
+    frontend: {
+      shared: {
+        introInstructions: Array.isArray(scenario?.frontend?.shared?.introInstructions)
+          ? scenario.frontend.shared.introInstructions.map((item) => String(item || "").trim()).filter(Boolean)
+          : []
+      },
+      chat: {
+        guideTitle: String(scenario?.frontend?.chat?.guideTitle || "").trim(),
+        guideSections: Array.isArray(scenario?.frontend?.chat?.guideSections)
+          ? scenario.frontend.chat.guideSections
+              .map((section) => {
+                if (!section || typeof section !== "object") return null;
+                return {
+                  title: String(section.title || "").trim(),
+                  body: String(section.body || "").trim(),
+                  bullets: Array.isArray(section.bullets)
+                    ? section.bullets.map((item) => String(item || "").trim()).filter(Boolean)
+                    : [],
+                  pauseAfter: !!section.pauseAfter
+                };
+              })
+              .filter(Boolean)
+          : [],
+        initialTranscript: Array.isArray(scenario?.frontend?.chat?.initialTranscript)
+          ? scenario.frontend.chat.initialTranscript
+              .map((turn) => {
+                if (!turn || typeof turn !== "object") return null;
+                return {
+                  role: String(turn.role || "").trim(),
+                  label: String(turn.label || "").trim(),
+                  meta: String(turn.meta || "").trim(),
+                  content: String(turn.content || "").trim()
+                };
+              })
+              .filter((turn) => turn && turn.role && turn.content)
+          : []
+      }
+    }
+  };
 }
 
 function buildCustomerBehaviorRules(s) {
@@ -1014,6 +1425,15 @@ exports.handler = async (event) => {
     if (method === "GET" && path.endsWith("/scenarios")) {
       const list = Object.values(SCENARIOS).map((s) => ({ id: s.id, label: s.label }));
       return json({ scenarios: list });
+    }
+
+    if (method === "GET" && path.endsWith("/scenario")) {
+      const scenarioId =
+        event?.queryStringParameters?.scenarioId ||
+        event?.queryStringParameters?.id ||
+        "";
+      const scenario = getScenario(scenarioId);
+      return json({ scenario: buildScenarioClientConfig(scenario) });
     }
 
     if (method === "POST" && path.endsWith("/session")) {

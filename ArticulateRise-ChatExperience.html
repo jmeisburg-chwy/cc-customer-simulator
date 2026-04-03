@@ -1166,7 +1166,7 @@
                 </svg>
                 <h3 class="instructions-title">Instructions:</h3>
               </div>
-              <ol class="instructions-list">
+              <ol class="instructions-list" id="instructionsList">
                 <li>Review the customer’s reason for contact.</li>
                 <li>Type your response and press <strong>Enter</strong>.</li>
                 <li>Support the customer as you would on live chat.</li>
@@ -1467,6 +1467,7 @@
     }
 
     const SESSION_BASE = "https://1icxzv8avg.execute-api.us-east-2.amazonaws.com";
+    const SCENARIO_CONFIG_URL = SESSION_BASE + "/scenario";
     const CHAT_API_URL = SESSION_BASE + "/chat-turn";
     const EVAL_API_URL = SESSION_BASE + "/evaluate";
     const SAVE_API_URL = SESSION_BASE + "/coaching";
@@ -1570,6 +1571,7 @@
     const nameSubmitBtn = document.getElementById("nameSubmitBtn");
 
     const chatStartedText = document.getElementById("chatStartedText");
+    const instructionsListEl = document.getElementById("instructionsList");
 
     const DESIGN_WIDTH = 1280;
     const DESIGN_HEIGHT = 720;
@@ -1578,6 +1580,7 @@
       { role: "assistant", content: "Hi. I’m reaching out because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food.", label: "Customer", meta: "Demarco" }
     ];
 
+    let scenarioDisplayConfig = null;
     let transcript = JSON.parse(JSON.stringify(initialTranscript));
     let currentStep = 0;
     let chatEnded = false;
@@ -1591,6 +1594,13 @@
 
     function safeParse(json) {
       try { return JSON.parse(json); } catch (_) { return null; }
+    }
+
+    function escHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
     }
 
     function savePersisted(record) {
@@ -1667,6 +1677,83 @@
       messagesEl.querySelectorAll(".message-row").forEach((el) => el.remove());
       transcript.forEach((item) => appendMessage(item.role, item.content, item.label, item.meta, false));
       scrollMessagesToBottom();
+    }
+
+    function renderIntroInstructions(items) {
+      if (!instructionsListEl || !Array.isArray(items) || !items.length) return;
+
+      instructionsListEl.innerHTML = items
+        .map((item) => `<li>${escHtml(item)}</li>`)
+        .join("");
+    }
+
+    function renderGuideSections(sections) {
+      if (!guidanceShell || !Array.isArray(sections) || !sections.length) return;
+
+      guidanceShell.innerHTML = sections
+        .map((section) => {
+          const bullets = Array.isArray(section.bullets) ? section.bullets : [];
+          const bulletsHtml = bullets.map((item) => `<li>${escHtml(item)}</li>`).join("");
+          const pauseHtml = section.pauseAfter
+            ? `<div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>`
+            : "";
+
+          return `
+            <div class="section">
+              <h2>${escHtml(section.title || "")}</h2>
+              <p>${escHtml(section.body || "")}</p>
+              <div class="blue-card">
+                <div class="coach-avatar">
+                  <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
+                </div>
+                <div>
+                  <ul>${bulletsHtml}</ul>
+                </div>
+              </div>
+            </div>
+            ${pauseHtml}
+          `;
+        })
+        .join("");
+    }
+
+    function applyScenarioDisplayConfig(config) {
+      if (!config || typeof config !== "object") return;
+
+      scenarioDisplayConfig = config;
+
+      const introInstructions = config?.frontend?.shared?.introInstructions;
+      if (Array.isArray(introInstructions) && introInstructions.length) {
+        renderIntroInstructions(introInstructions);
+      }
+
+      const guideTitle = String(config?.frontend?.chat?.guideTitle || "").trim();
+      if (guideTitle) {
+        rightPaneTitle.textContent = guideTitle;
+      }
+
+      const guideSections = config?.frontend?.chat?.guideSections;
+      if (Array.isArray(guideSections) && guideSections.length) {
+        renderGuideSections(guideSections);
+      }
+
+      const initialTurns = config?.frontend?.chat?.initialTranscript;
+      if (Array.isArray(initialTurns) && initialTurns.length) {
+        transcript = initialTurns.map((turn) => ({
+          role: turn.role,
+          content: turn.content,
+          label: turn.label || "Customer",
+          meta: turn.meta || ""
+        }));
+        renderTranscript();
+      }
+    }
+
+    async function loadScenarioDisplayConfig() {
+      const url = `${SCENARIO_CONFIG_URL}?scenarioId=${encodeURIComponent(SCENARIO_ID)}`;
+      const data = await fetchJSON(url, { method: "GET" }, 20000);
+      if (!data || data.error || !data.scenario || typeof data.scenario !== "object") return null;
+      return data.scenario;
     }
 
     function appendMessage(role, text, label, meta = "", shouldScroll = true) {
@@ -1855,7 +1942,8 @@
       hideLoadingState();
       feedbackShell.classList.remove("active");
       guidanceShell.style.display = "block";
-      rightPaneTitle.textContent = "Coach Chewy Guidance";
+      rightPaneTitle.textContent =
+        String(scenarioDisplayConfig?.frontend?.chat?.guideTitle || "").trim() || "Coach Chewy Guidance";
     }
 
     function showLoadingState() {
@@ -2504,20 +2592,29 @@
       agentId = storedAgentId;
     }
 
-    renderTranscript();
-    showGuidanceMode();
-    setChatEndedState(false);
-    autoResizeTextarea();
-    hideReviewOverlay();
-    fitStage();
-    restorePersistedFeedback();
+    async function initializeChatExperience() {
+      try {
+        const config = await loadScenarioDisplayConfig();
+        if (config) applyScenarioDisplayConfig(config);
+      } catch (_) {}
 
-    if (chatAccordion.open) {
-      const autoStarted = tryAutoStartFromScorm();
-      if (!autoStarted && !sessionStarted) {
-        openNameModal();
+      renderTranscript();
+      showGuidanceMode();
+      setChatEndedState(false);
+      autoResizeTextarea();
+      hideReviewOverlay();
+      fitStage();
+      restorePersistedFeedback();
+
+      if (chatAccordion.open) {
+        const autoStarted = tryAutoStartFromScorm();
+        if (!autoStarted && !sessionStarted) {
+          openNameModal();
+        }
       }
     }
+
+    initializeChatExperience();
   </script>
 </body>
 </html>
