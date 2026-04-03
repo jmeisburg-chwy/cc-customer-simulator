@@ -1,17 +1,24 @@
 <!--
-REQUIRED: Update the DEFAULT_SCENARIO_ID below.
+CHEWY CUSTOMER SIMULATOR: VOICE EXPERIENCE
 
-This value must exactly match the scenario ID configured in the AWS Lambda function.
+HOW TO USE
+1. Upload/paste this file into your Articulate Rise block for the voice experience.
+2. Set SESSION_BASE to your AWS API base URL.
+3. Set SCENARIO_OVERRIDE to the scenario id you want to run.
+4. Leave SCENARIO_OVERRIDE blank to use the default scenario.
 
-To find it:
-1. Open your Lambda function (scenarios endpoint)
-2. Locate the scenario you want to use
-3. Copy the "id" value
+WHAT TO EDIT
+- SESSION_BASE = your API Gateway base URL
+- SCENARIO_OVERRIDE = your scenario id from Lambda.js
 
-Example:
-const DEFAULT_SCENARIO_ID = "on_time_delivery_no_partial_refund_needed";
+EXAMPLE
+const SESSION_BASE = "https://your-api-id.execute-api.us-east-2.amazonaws.com";
+const SCENARIO_OVERRIDE = "late_delivery_20_partial_refund";
 
-Then replace the value below with your scenario ID.
+NOTES
+- This file is voice-only.
+- Scenario guide content comes from Lambda.
+- To use a different scenario, change only SCENARIO_OVERRIDE.
 -->
 
 <!DOCTYPE html>
@@ -789,113 +796,13 @@ Then replace the value below with your scenario ID.
             <audio id="assistant" autoplay></audio>
 
             <div id="guideShell" class="guide-shell">
-              <div class="guide-top-note">
-                ℹ️ Begin by speaking your <strong>Chewy greeting.</strong>
-              </div>
+              <div id="guideTopNote" class="guide-top-note"></div>
 
               <div id="guideControls" class="guide-controls">
                 <button id="toggleGuideBtn" class="ghost-btn" type="button" aria-expanded="true">Hide call guide</button>
               </div>
 
-              <div id="guideContent" class="guide-content">
-                <div class="section">
-                  <h2>Greet the Customer and Personalize the Conversation</h2>
-                  <p>The customer is calling about a delayed cat litter order and is frustrated that it has not arrived on time.</p>
-                  <div class="blue-card">
-                    <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    </div>
-                    <div>
-                      <ul>
-                        <li>Greet Mr. Munsen and thank him for reaching out.</li>
-                        <li>Reference Fluffy and the cat litter to personalize.</li>
-                        <li>Acknowledge the late delivery is frustrating.</li>
-                        <li>Say you will check the order right away.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-                </div>
-
-                <div class="section">
-                  <h2>Take Ownership and Begin Investigating the Order</h2>
-                  <p>The customer shares more about the delay and wants to understand what is happening with the order.</p>
-                  <div class="blue-card">
-                    <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    </div>
-                    <div>
-                      <ul>
-                        <li>Say you are pulling up the order.</li>
-                        <li>Acknowledge the delay and frustration.</li>
-                        <li>Ask him to verify the shipping address.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-                </div>
-
-                <div class="section">
-                  <h2>Verify the Address and Explain the Delay</h2>
-                  <p>The customer confirms the shipping address and is waiting for more details about the delay.</p>
-                  <div class="blue-card">
-                    <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    </div>
-                    <div>
-                      <ul>
-                        <li>Repeat the full address and confirm it is verified.</li>
-                        <li>Explain the delay in simple language.</li>
-                        <li>Tie the delay to weather near the fulfillment center.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-                </div>
-
-                <div class="section">
-                  <h2>Address Frustration and Provide Resolution</h2>
-                  <p>The customer expresses frustration and feels the delay is unfair due to the order arriving past the estimated delivery date.</p>
-                  <div class="blue-card">
-                    <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    </div>
-                    <div>
-                      <ul>
-                        <li>Acknowledge the customer’s frustration and validate why the delay feels unfair.</li>
-                        <li>Clearly explain the cause of the delay in simple terms and take ownership.</li>
-                        <li>Share the updated delivery expectation and reinforce what will happen next.</li>
-                        <li>Reassure the customer and show you are handling the situation.</li>
-                        <li>Since the order is three days past the estimated delivery date, offer a 20% concession.</li>
-                        <li>Present options for how to receive it and ask which they prefer.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-                </div>
-
-                <div class="section">
-                  <h2>Confirm the Resolution and Close the Call</h2>
-                  <p>The customer agrees to the resolution and wants confirmation of next steps.</p>
-                  <div class="blue-card">
-                    <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    </div>
-                    <div>
-                      <ul>
-                        <li>Confirm his preference and say you are processing the refund now.</li>
-                        <li>Set expectations for when the refund will appear.</li>
-                        <li>Recap the delivery plan with date and window, confirm the address, and offer additional help.</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-                </div>
-
-                <div class="guide-top-note" style="margin-top:30px;">
-                  ℹ️ After you finish supporting the customer, click <strong>End</strong> below to review your feedback.
-                </div>
-              </div>
+              <div id="guideContent" class="guide-content"></div>
 
               <div id="endArea" class="end-area">
                 <div class="end-inner">
@@ -941,32 +848,100 @@ Then replace the value below with your scenario ID.
 
     const SESSION_BASE = "https://1icxzv8avg.execute-api.us-east-2.amazonaws.com";
     const SCENARIOS_URL = SESSION_BASE + "/scenarios";
+    const SCENARIO_CONFIG_URL = SESSION_BASE + "/scenario";
     const SESSION_URL = SESSION_BASE + "/session";
     const EVAL_URL = SESSION_BASE + "/evaluate";
     const COACHING_URL = SESSION_BASE + "/coaching";
 
     const INGEST_TOKEN = "";
 
+    const SCENARIO_OVERRIDE = "";
     const DEFAULT_SCENARIO_ID = "late_delivery_20_partial_refund";
+    const ACTIVE_SCENARIO_ID = (() => {
+      const explicitOverride = String(SCENARIO_OVERRIDE || "").trim();
+      if (explicitOverride) return explicitOverride;
+
+      const urlScenarioId = new URLSearchParams(window.location.search).get("scenarioId");
+      return String(urlScenarioId || "").trim() || DEFAULT_SCENARIO_ID;
+    })();
     const HIDE_SCENARIO_DROPDOWN = true;
 
     const STORE = window.localStorage;
-    const STORAGE_KEY = "ccs_coaching:late_delivery_20_partial_refund:voice";
     const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
     const AGENT_ID_STORAGE_KEY = "ccs_agentId";
 
     const EVALUATION_RETRY_INITIAL_DELAY_MS = 2000;
     const EVALUATION_RETRY_MAX_DELAY_MS = 15000;
+    const FALLBACK_VOICE_GUIDE_TOP_NOTE = "Begin by speaking your Chewy greeting.";
+    const FALLBACK_VOICE_GUIDE_SECTIONS = [
+      {
+        title: "Open the Call with Confidence",
+        body: "The customer is calling with a question or concern and needs calm, clear support.",
+        bullets: [
+          "Greet the customer and thank them for calling.",
+          "Personalize the conversation when appropriate.",
+          "Acknowledge the concern in a calm, supportive way.",
+          "Let the customer know you will help right away."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Take Ownership and Gather Details",
+        body: "The customer explains the situation and wants to understand what is happening.",
+        bullets: [
+          "Explain what you are reviewing.",
+          "Acknowledge the customer's experience and any frustration.",
+          "Ask for any details needed to continue."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Verify Information and Share the Current Status",
+        body: "The customer has provided what you need and is waiting for a clear update.",
+        bullets: [
+          "Repeat key details clearly and confirm they are correct.",
+          "Explain the current status in simple language.",
+          "Keep the explanation easy to follow and focused on what matters most."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Address Concerns and Offer a Path Forward",
+        body: "The customer wants reassurance, ownership, and a clear resolution.",
+        bullets: [
+          "Validate the concern and show ownership.",
+          "Explain what can be done next.",
+          "Set expectations clearly and confidently.",
+          "Offer available options or support when appropriate."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Confirm Next Steps and Close the Call",
+        body: "The customer is ready to wrap up and wants confidence about what happens next.",
+        bullets: [
+          "Recap the resolution or current status briefly.",
+          "Confirm any next steps or timing expectations.",
+          "Offer additional help before ending the call."
+        ],
+        pauseAfter: true
+      }
+    ];
+    const FALLBACK_VOICE_END_NOTE = "After you finish supporting the customer, click End below to review your feedback.";
 
     function safeParse(json) { try { return JSON.parse(json); } catch (_) { return null; } }
+    function getVoiceStorageKey(scenarioId = getScenarioId()) {
+      const normalizedScenarioId = String(scenarioId || "").trim() || "default";
+      return `ccs_coaching:${normalizedScenarioId}:voice`;
+    }
     function loadPersisted() {
-      const raw = STORE.getItem(STORAGE_KEY);
+      const raw = STORE.getItem(getVoiceStorageKey());
       return raw ? safeParse(raw) : null;
     }
     function savePersisted(record) {
-      try { STORE.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (_) { }
+      try { STORE.setItem(getVoiceStorageKey(), JSON.stringify(record)); } catch (_) { }
     }
-    function clearPersisted() { try { STORE.removeItem(STORAGE_KEY); } catch (_) { } }
+    function clearPersisted() { try { STORE.removeItem(getVoiceStorageKey()); } catch (_) { } }
 
     let pc, micStream, analyser, rafId, recognition, recognizing = false, dcSend, dcRecv;
     const statusEl = document.getElementById('status');
@@ -982,6 +957,7 @@ Then replace the value below with your scenario ID.
     const nameErrorEl = document.getElementById('nameError');
 
     const guideShellEl = document.getElementById('guideShell');
+    const guideTopNoteEl = document.getElementById('guideTopNote');
     const guideControlsEl = document.getElementById('guideControls');
     const guideContentEl = document.getElementById('guideContent');
     const toggleGuideBtn = document.getElementById('toggleGuideBtn');
@@ -994,6 +970,7 @@ Then replace the value below with your scenario ID.
     let startedAt = null;
     let guideCollapsed = false;
     let evaluationRetryCancelled = false;
+    let scenarioDisplayConfig = null;
 
     if (HIDE_SCENARIO_DROPDOWN) {
       const label = scenarioSel.closest("label");
@@ -1034,13 +1011,93 @@ Then replace the value below with your scenario ID.
         .replaceAll(">", "&gt;");
     }
 
+    function renderVoiceGuideSections(sections, endNote = "") {
+      if (!guideContentEl) return;
+
+      const sectionsHtml = Array.isArray(sections)
+        ? sections
+            .map((section) => {
+              if (!section || typeof section !== "object") return "";
+              const bullets = Array.isArray(section.bullets) ? section.bullets : [];
+              const bulletsHtml = bullets.map((item) => `<li>${escHtml(item)}</li>`).join("");
+              const pauseHtml = section.pauseAfter
+                ? `<div class="pause-box">⏸️ <strong>Pause</strong> and let the customer respond.</div>`
+                : "";
+
+              return `
+                <div class="section">
+                  <h2>${escHtml(section.title || "")}</h2>
+                  <p>${escHtml(section.body || "")}</p>
+                  <div class="blue-card">
+                    <div class="blue-card-avatar">
+                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                    </div>
+                    <div>
+                      <ul>${bulletsHtml}</ul>
+                    </div>
+                  </div>
+                  ${pauseHtml}
+                </div>
+              `;
+            })
+            .filter(Boolean)
+            .join("")
+        : "";
+
+      const endNoteHtml = String(endNote || "").trim()
+        ? `<div class="guide-top-note" style="margin-top:30px;">ℹ️ ${escHtml(endNote)}</div>`
+        : "";
+
+      guideContentEl.innerHTML = sectionsHtml + endNoteHtml;
+    }
+
+    function getVoiceCustomerDisplayName() {
+      return (
+        String(scenarioDisplayConfig?.frontend?.voice?.customerDisplayName || "").trim() ||
+        "Customer"
+      );
+    }
+
+    function applyFallbackVoiceDisplayContent() {
+      if (guideTopNoteEl) {
+        guideTopNoteEl.innerHTML = `ℹ️ ${escHtml(FALLBACK_VOICE_GUIDE_TOP_NOTE)}`;
+      }
+      renderVoiceGuideSections(FALLBACK_VOICE_GUIDE_SECTIONS, FALLBACK_VOICE_END_NOTE);
+      if (guideShellEl) {
+        guideShellEl.dataset.customerDisplayName = "Customer";
+      }
+    }
+
+    function applyScenarioDisplayConfig(config) {
+      if (!config || typeof config !== "object") return;
+
+      scenarioDisplayConfig = config;
+
+      const guideTopNote = String(config?.frontend?.voice?.guideTopNote || "").trim();
+      if (guideTopNoteEl && guideTopNote) {
+        guideTopNoteEl.innerHTML = `ℹ️ ${escHtml(guideTopNote)}`;
+      }
+
+      const guideSections = config?.frontend?.voice?.guideSections;
+      const endNote = String(config?.frontend?.voice?.endNote || "").trim();
+      if (Array.isArray(guideSections) && guideSections.length) {
+        renderVoiceGuideSections(guideSections, endNote || FALLBACK_VOICE_END_NOTE);
+      } else if (endNote) {
+        renderVoiceGuideSections(FALLBACK_VOICE_GUIDE_SECTIONS, endNote);
+      }
+
+      if (guideShellEl) {
+        guideShellEl.dataset.customerDisplayName = getVoiceCustomerDisplayName();
+      }
+    }
+
     function addTurn(who, text) {
       const t = String(text || "").trim();
       if (!t) return;
       transcriptTurns.push({ who, text: t, t: now() });
     }
 
-    function getScenarioId() { return DEFAULT_SCENARIO_ID; }
+    function getScenarioId() { return ACTIVE_SCENARIO_ID; }
 
     function getQueryParams() {
       const p = new URLSearchParams(location.search);
@@ -1212,6 +1269,13 @@ Then replace the value below with your scenario ID.
       }
     }
 
+    async function loadScenarioDisplayConfig() {
+      const url = `${SCENARIO_CONFIG_URL}?scenarioId=${encodeURIComponent(getScenarioId())}`;
+      const data = await fetchJSON(url, { method: "GET" }, 20000);
+      if (!data || data.error || !data.scenario || typeof data.scenario !== "object") return null;
+      return data.scenario;
+    }
+
     function populateScenarios(list) {
       scenarioSel.innerHTML = "";
       for (const s of list) {
@@ -1226,10 +1290,10 @@ Then replace the value below with your scenario ID.
       const opts = Array.from(scenarioSel.options || []);
       if (!opts.length) return false;
 
-      const match = opts.find(o => o.value === DEFAULT_SCENARIO_ID);
+      const match = opts.find(o => o.value === ACTIVE_SCENARIO_ID);
       if (!match) return false;
 
-      scenarioSel.value = DEFAULT_SCENARIO_ID;
+      scenarioSel.value = ACTIVE_SCENARIO_ID;
       return true;
     }
 
@@ -1254,6 +1318,17 @@ Then replace the value below with your scenario ID.
         hintEl.textContent = "This simulator scenario is not currently available. Please contact your facilitator.";
         startBtn.disabled = true;
         return;
+      }
+
+      try {
+        const config = await loadScenarioDisplayConfig();
+        if (config) {
+          applyScenarioDisplayConfig(config);
+        } else {
+          console.warn("Scenario config did not load; falling back to built-in voice display content.");
+        }
+      } catch (_) {
+        console.warn("Scenario config request failed; falling back to built-in voice display content.");
       }
 
       setStatus("Ready");
@@ -1992,6 +2067,8 @@ Then replace the value below with your scenario ID.
         }
       });
     }
+
+    applyFallbackVoiceDisplayContent();
 
     loadScenarios().then(() => {
       tryRestoreCoachingScreen();

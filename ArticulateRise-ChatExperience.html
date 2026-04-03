@@ -1,4 +1,25 @@
+<!--
+CHEWY CUSTOMER SIMULATOR: CHAT EXPERIENCE
 
+HOW TO USE
+1. Upload/paste this file into your Articulate Rise block for the chat experience.
+2. Set SESSION_BASE to your AWS API base URL.
+3. Set SCENARIO_OVERRIDE to the scenario id you want to run.
+4. Leave SCENARIO_OVERRIDE blank to use the default scenario.
+
+WHAT TO EDIT
+- SESSION_BASE = your API Gateway base URL
+- SCENARIO_OVERRIDE = your scenario id from Lambda.js
+
+EXAMPLE
+const SESSION_BASE = "https://your-api-id.execute-api.us-east-2.amazonaws.com";
+const SCENARIO_OVERRIDE = "late_delivery_20_partial_refund";
+
+NOTES
+- This file is chat-only.
+- Scenario content, hotkeys, guide content, and progression come from Lambda.
+- To use a different scenario, change only SCENARIO_OVERRIDE.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1313,111 +1334,7 @@
                     </div>
 
                     <div class="guide-scroll" id="guideScroll">
-                      <div class="guidance-shell" id="guidanceShell">
-                        <div class="section">
-                          <h2>Acknowledge and Personalize the Conversation</h2>
-                          <p>The customer is asking for the delivery status of an order and is worried Larry could run out of food.</p>
-                          <div class="blue-card">
-                            <div class="coach-avatar">
-                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
-                            </div>
-                            <div>
-                              <ul>
-                                <li>Greet Demarco and thank him for reaching out.</li>
-                                <li>Acknowledge the concern about Larry running out of food.</li>
-                                <li>Let him know you will look into the order and help make sure Larry is set.</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-
-                        <div class="section">
-                          <h2>Confirm the Order Status and Verify the Address</h2>
-                          <p>The customer wants reassurance that the order is still on track.</p>
-                          <div class="blue-card">
-                            <div class="coach-avatar">
-                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
-                            </div>
-                            <div>
-                              <ul>
-                                <li>Reassure Demarco that it makes sense to check on the order.</li>
-                                <li>Explain that the package is still moving within the estimated delivery window.</li>
-                                <li>Ask him to confirm the shipping address before moving forward.</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-
-                        <div class="section">
-                          <h2>Reinforce Confidence After Address Verification</h2>
-                          <p>The customer has confirmed the shipping address.</p>
-                          <div class="blue-card">
-                            <div class="coach-avatar">
-                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
-                            </div>
-                            <div>
-                              <ul>
-                                <li>Repeat the address clearly and confirm everything looks accurate.</li>
-                                <li>Use confident language to reassure the customer the order is still on track.</li>
-                                <li>Keep the explanation simple, clear, and easy to follow.</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-
-                        <div class="section">
-                          <h2>Use Standard Text to Reassure the Customer About What Happens Next</h2>
-                          <p>Now is the right time to use the prepared order-tracking response and explain what Demarco should do if Larry’s food does not arrive on time.</p>
-                          <div class="blue-card">
-                            <div class="coach-avatar">
-                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
-                            </div>
-                            <div>
-                              <ul>
-                                <li>Press <strong>F8</strong> to open <strong>Standard Text</strong>.</li>
-                                <li>Enter Hot Key <strong>DE6</strong> and press <strong>Enter</strong>.</li>
-                                <li>Personalize the response before sending it.
-                                  <ul>
-                                    <li>Replace <strong>"your package"</strong> with <strong>"Larry’s food"</strong>.</li>
-                                  </ul>
-                                </li>
-                                <li>Verify that the message:
-                                  <ul>
-                                    <li>Validates the question and reinforces that Demarco did the right thing by checking.</li>
-                                    <li>Reassures Demarco that everything still looks on track for Tuesday.</li>
-                                    <li>Clearly explains what to do next if Larry’s food does not arrive by Tuesday.</li>
-                                  </ul>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="pause-card">⏸️ <strong>Pause</strong> and let the customer respond.</div>
-
-                        <div class="section">
-                          <h2>Close the Conversation with Support</h2>
-                          <p>The customer feels reassured and has what they need.</p>
-                          <div class="blue-card">
-                            <div class="coach-avatar">
-                              <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="Coach Chewy the corgi" />
-                            </div>
-                            <div>
-                              <ul>
-                                <li>Reinforce that Larry’s food is currently on track.</li>
-                                <li>End with a warm, confident closing.</li>
-                                <li>Offer any additional help before ending the chat.</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <div class="guidance-shell" id="guidanceShell"></div>
 
                       <div class="loading-shell" id="loadingShell">
                         <div class="loading-card">
@@ -1472,13 +1389,76 @@
     const EVAL_API_URL = SESSION_BASE + "/evaluate";
     const SAVE_API_URL = SESSION_BASE + "/coaching";
 
+    const SCENARIO_OVERRIDE = "";
     const DEFAULT_SCENARIO_ID = "on_time_delivery_no_partial_refund_needed";
-    const STORAGE_KEY = "ccs_coaching:on_time_delivery_no_partial_refund_needed:chat";
+    const SCENARIO_ID = (() => {
+      const explicitOverride = String(SCENARIO_OVERRIDE || "").trim();
+      if (explicitOverride) return explicitOverride;
+
+      const urlScenarioId = new URLSearchParams(window.location.search).get("scenarioId");
+      return String(urlScenarioId || "").trim() || DEFAULT_SCENARIO_ID;
+    })();
+    const STORAGE_KEY = `ccs_coaching:${SCENARIO_ID}:chat`;
     const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
     const AGENT_ID_STORAGE_KEY = "ccs_agentId";
-
-    const SCENARIO_ID = DEFAULT_SCENARIO_ID;
-    const SCENARIO_LABEL = "Scenario 1: On Time Delivery, No partial refund Needed";
+    const DEFAULT_SCENARIO_LABEL = "Scenario 1: On Time Delivery, No partial refund Needed";
+    const FALLBACK_GUIDE_TITLE = "Coach Chewy Guidance";
+    const FALLBACK_GUIDE_SECTIONS = [
+      {
+        title: "Acknowledge the Customer and Clarify the Need",
+        body: "The customer is reaching out for help with an order or account concern and wants clear support.",
+        bullets: [
+          "Greet the customer and thank them for reaching out.",
+          "Acknowledge the concern in a calm, supportive way.",
+          "Let the customer know you will look into the issue and help."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Verify Details and Explain What You Are Checking",
+        body: "The customer wants reassurance and clear next steps.",
+        bullets: [
+          "Reassure the customer that it makes sense to check on the issue.",
+          "Explain what you are reviewing or confirming.",
+          "Ask for any needed verification details before moving forward."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Reinforce Confidence After Verification",
+        body: "The customer has provided the information needed to continue.",
+        bullets: [
+          "Repeat key details clearly and confirm everything looks accurate.",
+          "Use confident language to explain the current status.",
+          "Keep the explanation simple, clear, and easy to follow."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Use Standard Text and Explain What Happens Next",
+        body: "Use a prepared response when it helps, then explain the next step clearly.",
+        bullets: [
+          "Press F8 to open Standard Text.",
+          "Enter the relevant hotkey and press Enter.",
+          "Personalize the response before sending.",
+          "Replace generic wording with customer-specific details when needed.",
+          "Validate the question and reinforce that checking in was reasonable.",
+          "Share the current status clearly.",
+          "Explain what the customer should do next if the issue is not resolved."
+        ],
+        pauseAfter: true
+      },
+      {
+        title: "Close the Conversation with Support",
+        body: "The customer feels reassured and has what they need.",
+        bullets: [
+          "Recap the current status briefly.",
+          "End with a warm, confident closing.",
+          "Offer any additional help before ending the chat."
+        ],
+        pauseAfter: false
+      }
+    ];
 
     const STANDARD_TEXT_MAP = {
       de5: "I'm sorry for the delay of your order. I know how important timely deliveries are and we want to ensure you and PETNAME are taken care of. I’ve refunded $XX to your PAYMENT ending in -XXXX to help with a local purchase in the meantime, and it should appear in your account within 3-6 days.",
@@ -1532,11 +1512,11 @@
     ];
 
     const FALLBACK_CUSTOMER_REPLIES = [
-      "Thank you. I just want to be sure it gets here on time.",
-      "1234 Elm Street in El Paso.",
-      "Perfect. Thanks for checking that.",
-      "What happens if this order doesn’t arrive on time?",
-      "Perfect, that helps a lot."
+      "Thank you. I just want to make sure everything is still on track.",
+      "Sure, I can confirm that information.",
+      "Okay, thanks for checking that.",
+      "What should I do if there is still a problem?",
+      "That helps a lot. Thank you."
     ];
 
     const viewportEl = document.getElementById("viewport");
@@ -1577,10 +1557,12 @@
     const DESIGN_HEIGHT = 720;
 
     const initialTranscript = [
-      { role: "assistant", content: "Hi. I’m reaching out because I need to know when my package will arrive. It’s for my lizard, Larry, and I don’t want him to run out of food.", label: "Customer", meta: "Demarco" }
+      { role: "assistant", content: "Hi. I’m reaching out because I need help with an order and I’d like to know what to expect next.", label: "Customer", meta: "Customer" }
     ];
 
     let scenarioDisplayConfig = null;
+    let runtimeHotkeyMap = { ...STANDARD_TEXT_MAP };
+    let runtimeStepProgression = null;
     let transcript = JSON.parse(JSON.stringify(initialTranscript));
     let currentStep = 0;
     let chatEnded = false;
@@ -1717,10 +1699,142 @@
         .join("");
     }
 
+    function applyFallbackGuideContent() {
+      rightPaneTitle.textContent = FALLBACK_GUIDE_TITLE;
+      renderGuideSections(FALLBACK_GUIDE_SECTIONS);
+    }
+
+    function getChatCustomerDisplayName() {
+      return String(scenarioDisplayConfig?.frontend?.chat?.customerDisplayName || "").trim() || "Customer";
+    }
+
+    function getScenarioLabel() {
+      return String(scenarioDisplayConfig?.label || "").trim() || DEFAULT_SCENARIO_LABEL;
+    }
+
+    function getStepConfigLength() {
+      return Array.isArray(runtimeStepProgression) && runtimeStepProgression.length
+        ? runtimeStepProgression.length
+        : STEP_CONFIG.length;
+    }
+
+    function evaluateStepCondition(text, condition) {
+      if (!condition || typeof condition !== "object") return false;
+      const op = String(condition.op || "").trim().toLowerCase();
+      const phrases = Array.isArray(condition.phrases) ? condition.phrases : [];
+
+      if (op === "contains_any") {
+        return containsAny(text, phrases);
+      }
+
+      return false;
+    }
+
+    function isValidStepRule(step) {
+      if (!step || typeof step !== "object") return false;
+      const match = step.match;
+      if (!match || typeof match !== "object") return false;
+
+      const hasAll = Array.isArray(match.all) && match.all.length > 0;
+      const hasAny = Array.isArray(match.any) && match.any.length > 0;
+      if (!hasAll && !hasAny) return false;
+
+      const validateConditions = (items) =>
+        Array.isArray(items) &&
+        items.every((item) =>
+          item &&
+          typeof item === "object" &&
+          String(item.op || "").trim().toLowerCase() === "contains_any" &&
+          Array.isArray(item.phrases) &&
+          item.phrases.length > 0
+        );
+
+      return (!hasAll || validateConditions(match.all)) && (!hasAny || validateConditions(match.any));
+    }
+
+    function evaluateBackendStep(message, step) {
+      if (!isValidStepRule(step)) return false;
+
+      const normalized = String(message || "").toLowerCase();
+      const allConditions = Array.isArray(step.match.all) ? step.match.all : [];
+      const anyConditions = Array.isArray(step.match.any) ? step.match.any : [];
+
+      const allPassed = !allConditions.length || allConditions.every((condition) => evaluateStepCondition(normalized, condition));
+      const anyPassed = !anyConditions.length || anyConditions.some((condition) => evaluateStepCondition(normalized, condition));
+
+      return allPassed && anyPassed;
+    }
+
+    function evaluateCurrentStep(message) {
+      if (Array.isArray(runtimeStepProgression) && runtimeStepProgression.length) {
+        const currentConfig = runtimeStepProgression[Math.min(currentStep, runtimeStepProgression.length - 1)];
+        if (isValidStepRule(currentConfig)) {
+          return evaluateBackendStep(message, currentConfig);
+        }
+
+        console.warn("Scenario step progression config is invalid; falling back to built-in step config.");
+        runtimeStepProgression = null;
+      }
+
+      const fallbackConfig = STEP_CONFIG[Math.min(currentStep, STEP_CONFIG.length - 1)];
+      return fallbackConfig.successCheck(message);
+    }
+
+    function buildHotkeyMapFromConfig(config) {
+      const hotkeys = config && typeof config === "object" ? config.hotkeys : null;
+      const profile = String(config?.chatConfig?.hotkeyProfile || "core").trim().toLowerCase();
+      const toMap = (items) => {
+        if (!Array.isArray(items)) return {};
+        return items.reduce((acc, item) => {
+          const hotkey = String(item?.hotkey || "").trim().toLowerCase();
+          const text = String(item?.text || "").trim();
+          if (hotkey && text) acc[hotkey] = text;
+          return acc;
+        }, {});
+      };
+
+      const coreMap = toMap(hotkeys?.core);
+      const rxMap = profile === "rx" ? toMap(hotkeys?.rx) : {};
+      const merged = { ...coreMap, ...rxMap };
+      return Object.keys(merged).length ? merged : null;
+    }
+
+    function buildStepProgressionFromConfig(config) {
+      const steps = config?.chatConfig?.stepProgression;
+      if (!Array.isArray(steps) || !steps.length) return null;
+
+      const normalized = steps
+        .map((step) => {
+          if (!step || typeof step !== "object") return null;
+          return {
+            id: Number.isFinite(step.id) ? step.id : 0,
+            match: {
+              all: Array.isArray(step?.match?.all) ? step.match.all : [],
+              any: Array.isArray(step?.match?.any) ? step.match.any : []
+            }
+          };
+        })
+        .filter(Boolean);
+
+      return normalized.length && normalized.every(isValidStepRule) ? normalized : null;
+    }
+
     function applyScenarioDisplayConfig(config) {
       if (!config || typeof config !== "object") return;
 
       scenarioDisplayConfig = config;
+
+      const hotkeyMap = buildHotkeyMapFromConfig(config);
+      if (hotkeyMap) {
+        runtimeHotkeyMap = hotkeyMap;
+      }
+
+      const stepProgression = buildStepProgressionFromConfig(config);
+      if (stepProgression) {
+        runtimeStepProgression = stepProgression;
+      } else {
+        console.warn("Scenario step progression config missing or invalid; falling back to built-in step config.");
+      }
 
       const introInstructions = config?.frontend?.shared?.introInstructions;
       if (Array.isArray(introInstructions) && introInstructions.length) {
@@ -1743,7 +1857,7 @@
           role: turn.role,
           content: turn.content,
           label: turn.label || "Customer",
-          meta: turn.meta || ""
+          meta: turn.meta || getChatCustomerDisplayName()
         }));
         renderTranscript();
       }
@@ -1894,12 +2008,10 @@
       const fallback = {
         quality_checklist: [
           {
-            category: "Acknowledge & Personalize",
+            category: "Acknowledgement",
             behaviors: [
-              { behavior: "Used the customer’s name at least once", observed: containsAny(joined, ["demarco"]) },
-              { behavior: "Referenced the pet's name Larry at least once", observed: containsAny(joined, ["larry"]) },
-              { behavior: "Acknowledged concern about Larry running out of food", observed: containsAny(joined, ["running out of food", "worried", "concern", "larry"]) && containsAny(joined, ["sorry", "understand", "worry", "concern"]) },
-              { behavior: "Asked a clarifying question such as address verification", observed: joined.includes("?") || containsAny(joined, ["confirm", "verify", "address"]) }
+              { behavior: "Acknowledged the customer’s concern", observed: containsAny(joined, ["sorry", "understand", "worry", "concern", "happy to help"]) },
+              { behavior: "Asked a clarifying or verifying question", observed: joined.includes("?") || containsAny(joined, ["confirm", "verify", "address", "order number", "email"]) }
             ]
           },
           {
@@ -1914,17 +2026,17 @@
           {
             category: "Reassurance",
             behaviors: [
-              { behavior: "Reassured the customer that checking was the right thing to do", observed: containsAny(joined, ["did the right thing", "glad you checked", "makes sense to check", "absolutely did the right thing"]) }
+              { behavior: "Reassured the customer and reduced uncertainty", observed: containsAny(joined, ["did the right thing", "glad you checked", "makes sense to check", "absolutely did the right thing", "on track", "i can help", "what happens next"]) }
             ]
           },
           {
-            category: "Ownership & Effortless",
+            category: "Ownership",
             behaviors: [
-              { behavior: "Clearly explained what to do if the order does not arrive by Tuesday", observed: containsAny(joined, ["if it doesn't arrive", "if it doesn’t arrive", "if it does not arrive", "reach back out", "contact us", "let us know", "tuesday"]) }
+              { behavior: "Clearly explained next steps or what to do if the issue continues", observed: containsAny(joined, ["if it doesn't", "if it doesn’t", "if it does not", "reach back out", "contact us", "let us know", "next step", "follow up"]) }
             ]
           }
         ],
-        summary: "Take a moment to review the feedback and think about how you’ll apply it on your next customer chat interaction."
+        summary: "You showed some helpful support behaviors. Review the feedback to strengthen how you acknowledge concerns, explain next steps, and close with confidence."
       };
 
       renderFeedbackFromEvaluation(fallback);
@@ -2014,7 +2126,7 @@
 
     function insertStandardTextFromHotkey() {
       const hotkey = standardTextInput.value.trim().toLowerCase();
-      const mappedText = STANDARD_TEXT_MAP[hotkey];
+      const mappedText = runtimeHotkeyMap[hotkey];
 
       if (!mappedText) {
         standardTextError.classList.add("active");
@@ -2248,7 +2360,7 @@
         agentId: ident.agentId,
         agentName: ident.agentName,
         scenarioId: SCENARIO_ID,
-        scenarioLabel: SCENARIO_LABEL,
+        scenarioLabel: getScenarioLabel(),
         completionStatus: "Completed",
         trainingDate: formatTrainingDate(resolvedEndedAt),
         trainingTime: formatTrainingTime(resolvedEndedAt),
@@ -2314,16 +2426,20 @@
       appendMessage(agentTurn.role, agentTurn.content, agentTurn.label);
       setComposerState(true);
 
-      const currentConfig = STEP_CONFIG[Math.min(currentStep, STEP_CONFIG.length - 1)];
-      const stepPassed = currentConfig.successCheck(text);
+      const stepPassed = evaluateCurrentStep(text);
 
       if (stepPassed) {
-        currentStep = Math.min(currentStep + 1, STEP_CONFIG.length);
+        currentStep = Math.min(currentStep + 1, getStepConfigLength());
       }
 
       try {
         const customerReply = await getCustomerReply(text, stepPassed);
-        const replyTurn = { role: "assistant", content: customerReply, label: "Customer", meta: "Demarco" };
+        const replyTurn = {
+          role: "assistant",
+          content: customerReply,
+          label: "Customer",
+          meta: getChatCustomerDisplayName()
+        };
         transcript.push(replyTurn);
         appendMessage("assistant", replyTurn.content, replyTurn.label, replyTurn.meta);
       } catch (error) {
@@ -2377,7 +2493,7 @@
       if (!data || !data.customerMessage) throw new Error("Missing customerMessage in response");
 
       if (typeof data.currentStep === "number") {
-        currentStep = Math.min(Math.max(data.currentStep, 0), STEP_CONFIG.length);
+        currentStep = Math.min(Math.max(data.currentStep, 0), getStepConfigLength());
       }
 
       return data.customerMessage;
@@ -2593,10 +2709,20 @@
     }
 
     async function initializeChatExperience() {
+      applyFallbackGuideContent();
+      runtimeHotkeyMap = { ...STANDARD_TEXT_MAP };
+      runtimeStepProgression = null;
+
       try {
         const config = await loadScenarioDisplayConfig();
-        if (config) applyScenarioDisplayConfig(config);
-      } catch (_) {}
+        if (config) {
+          applyScenarioDisplayConfig(config);
+        } else {
+          console.warn("Scenario config did not load; falling back to built-in chat hotkeys.");
+        }
+      } catch (_) {
+        console.warn("Scenario config request failed; falling back to built-in chat hotkeys.");
+      }
 
       renderTranscript();
       showGuidanceMode();

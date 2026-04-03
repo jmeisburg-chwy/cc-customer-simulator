@@ -1,130 +1,138 @@
 # Customer Simulator
 
-This project is a lightweight customer-service training simulator built around one AWS Lambda backend and two standalone browser frontends.
+## What this project is
 
-- The backend defines training scenarios, generates AI customer responses, evaluates completed conversations, and stores coaching results.
-- The chat frontend provides a typed roleplay experience.
-- The voice frontend provides a live call experience using OpenAI Realtime over WebRTC.
+Customer Simulator is a Chewy training tool with one AWS Lambda backend and two separate frontend experiences:
 
-## Project Structure
+- `ArticulateRise-ChatExperience.html` for chat practice
+- `ArticulateRise-VoiceExperience.html` for voice practice
 
-- `Lambda.js`: Main backend entry point. Contains scenario definitions, prompt construction, API integrations, evaluation logic, and coaching persistence.
-- `ArticulateRise-ChatExperience.html`: Standalone chat simulator UI.
-- `ArticulateRise-VoiceExperience.html`: Standalone voice simulator UI.
-- `README.md`: Developer overview and setup notes.
+The backend is the source of truth for scenarios, customer behavior, evaluation, and coaching storage.
 
-## How The System Works
+## How it works at a high level
 
-At a high level, the HTML frontends call the Lambda backend through an API Gateway-style base URL. The Lambda is the source of truth for scenario content and AI behavior.
+`Lambda.js` contains the `SCENARIOS` object and serves scenario configuration to both frontends.
 
-### Backend Responsibilities
+- Chat and voice stay separate in the UI.
+- Both frontends load scenario-specific display/config data from `GET /scenario`.
+- Chat uses `POST /chat-turn` for turn-by-turn customer replies.
+- Voice uses `POST /session` to create an OpenAI Realtime session.
+- Both experiences use `POST /evaluate` to generate coaching.
+- Both can save coaching records through `POST /coaching`.
 
-`Lambda.js` exposes several HTTP-style routes through `exports.handler`:
+Scenario selection is controlled in each frontend by:
+- `SCENARIO_OVERRIDE` if set
+- otherwise the `scenarioId` query parameter
+- otherwise the frontend default scenario id
 
+## Quick start
+
+1. Deploy `Lambda.js` behind an HTTP endpoint.
+2. Set the required Lambda environment variables.
+3. Update `SESSION_BASE` in both frontend HTML files.
+4. Optionally set `SCENARIO_OVERRIDE` in either frontend.
+5. Open or embed the frontend HTML files in Articulate Rise.
+
+For a new scenario:
+1. Use the GPT prompt in `gpt-scenario-generation-prompt.md` with the Customer Simulator Scenario Builder.
+2. Paste the generated scenario JSON into `SCENARIOS` in `Lambda.js`.
+3. Point the frontend to that scenario with `SCENARIO_OVERRIDE` or `?scenarioId=...`.
+
+## AWS setup
+
+Required Lambda environment variables:
+
+- `OPENAI_API_KEY`
+- `COACHING_TABLE`
+- `INGEST_TOKEN`
+- `AWS_REGION`
+
+Required API routes:
+
+- `GET /scenario`
 - `GET /scenarios`
-  Returns the list of available scenarios.
-- `POST /session`
-  Creates an ephemeral OpenAI Realtime session for the voice experience.
 - `POST /chat-turn`
-  Generates the next customer message for the chat experience.
 - `POST /evaluate`
-  Reviews the final transcript and returns structured coaching feedback.
 - `POST /coaching`
-  Saves coaching results to DynamoDB.
+- `POST /session`
 
-### Frontend Responsibilities
+Practical notes:
 
-The two HTML files are self-contained UIs with embedded CSS and JavaScript:
+- `GET /scenario` is what the frontends use to load scenario-specific guidance and configuration.
+- `GET /scenarios` is useful for listing available scenarios and voice discovery flows.
+- `POST /coaching` writes to DynamoDB using `COACHING_TABLE`.
+- Make sure CORS is configured for the domain or LMS origin that will host the HTML files.
+
+## Frontend setup
+
+Key frontend files:
 
 - `ArticulateRise-ChatExperience.html`
-  Sends agent messages to `/chat-turn`, displays customer replies, requests final coaching from `/evaluate`, and optionally saves results to `/coaching`.
 - `ArticulateRise-VoiceExperience.html`
-  Loads available scenarios from `/scenarios`, requests a voice session from `/session`, connects to OpenAI Realtime, collects transcript turns, requests coaching from `/evaluate`, and saves results to `/coaching`.
 
-## Interaction Flow
+For most deployments, the only frontend values you need to change are:
 
-### Chat Experience
+- `SESSION_BASE`
+- `SCENARIO_OVERRIDE`
 
-1. The learner opens `ArticulateRise-ChatExperience.html`.
-2. The page uses a configured scenario ID and API base URL.
-3. Each learner message is sent to `POST /chat-turn`.
-4. The backend uses the scenario instructions in `Lambda.js` to generate the next customer reply.
-5. When the learner ends the chat, the page sends the transcript to `POST /evaluate`.
-6. The page optionally sends the coaching payload to `POST /coaching`.
+How scenario selection works:
 
-### Voice Experience
+- Leave `SCENARIO_OVERRIDE` blank to use the URL parameter or default scenario.
+- Use `?scenarioId=your_scenario_id` when you want the host page to control the scenario.
+- Set `SCENARIO_OVERRIDE` when you want a frontend locked to one scenario.
 
-1. The learner opens `ArticulateRise-VoiceExperience.html`.
-2. The page loads scenarios from `GET /scenarios`.
-3. The page requests an ephemeral OpenAI session from `POST /session`.
-4. The browser creates a WebRTC connection directly to OpenAI Realtime using the returned client secret.
-5. When the call ends, the page sends the transcript to `POST /evaluate`.
-6. The page optionally sends the coaching payload to `POST /coaching`.
+## Creating a new scenario
 
-## Scenarios
+Use these files:
 
-All scenarios currently live inside `Lambda.js` in the `SCENARIOS` object. Each scenario includes:
+- `scenario-template.json`
+- `scenario-authoring-guide.md`
+- `gpt-scenario-generation-prompt.md`
 
-- a stable `id`
-- a learner-facing `label` and `title`
-- an `about` description
-- a `conversationBetween` section that shapes the AI customer's role and opening line
-- a `facts` section that constrains what the AI customer can say
-- a `qualityChecklist` and `evaluationCriteria` used for coaching
+Recommended workflow:
 
-If you add or rename a scenario in `Lambda.js`, make sure the frontend `DEFAULT_SCENARIO_ID` values still match a real scenario ID.
+1. Start with the GPT "Customer Simulator Scenario Builder".
+2. Have it generate runtime-valid scenario JSON using the current contract.
+3. Review the output against `scenario-authoring-guide.md`.
+4. Paste the final scenario object into `SCENARIOS` in `Lambda.js`.
+5. Test the scenario in chat and/or voice depending on the channels you enabled.
 
-## Configuration
+Important:
 
-The backend depends on environment variables:
+- `Lambda.js` is the backend source of truth for scenarios.
+- Do not create new scenarios only in the frontend.
+- The frontend should consume scenario data from `/scenario`, not hardcoded scenario copy whenever backend config is available.
 
-- `OPENAI_API_KEY`: Required for chat, realtime session creation, and evaluation
-- `COACHING_TABLE`: DynamoDB table name for saved coaching records
-- `INGEST_TOKEN`: Optional shared token required by `POST /coaching`
-- `AWS_REGION` or `AWS_DEFAULT_REGION`: AWS region for DynamoDB writes
+## Architecture overview
 
-The frontends currently contain hardcoded API URLs and default scenario IDs. Before using them in a new environment, update:
+Key files:
 
-- the `SESSION_BASE` constant in both HTML files
-- the `DEFAULT_SCENARIO_ID` constant in each experience
-- any storage key or scenario label constants tied to that scenario
+- `Lambda.js`
+  Backend routes, scenario definitions, prompt construction, evaluation, and coaching persistence.
+- `ArticulateRise-ChatExperience.html`
+  Standalone chat experience for Rise or browser embedding.
+- `ArticulateRise-VoiceExperience.html`
+  Standalone voice experience using Realtime session creation.
+- `scenario-template.json`
+  Starter template for new scenarios.
+- `scenario-authoring-guide.md`
+  Field-by-field scenario authoring guide.
+- `gpt-scenario-generation-prompt.md`
+  Prompt for the GPT-based scenario builder.
 
-## Running The Project
+High-level flow:
 
-There is no local app server or package-based setup in this repository right now. Running the project is mostly a matter of deploying the backend and opening the HTML files in a browser or LMS container.
+1. Frontend resolves the active scenario id.
+2. Frontend requests scenario config from `GET /scenario`.
+3. Learner completes chat or voice interaction.
+4. Backend evaluates the transcript with `POST /evaluate`.
+5. Frontend optionally saves the coaching record with `POST /coaching`.
 
-### High-Level Setup
+## Notes / important behaviors
 
-1. Deploy `Lambda.js` as an AWS Lambda function behind an HTTP endpoint.
-2. Configure the required environment variables in Lambda.
-3. Ensure CORS is enabled for the frontend origin.
-4. Update the HTML files to point at the correct backend base URL.
-5. Open the HTML files directly in a browser, host them on a static site, or embed them in Articulate Rise or another LMS flow.
-
-## Testing
-
-There is not currently an automated test suite in this repo.
-
-### Current Practical Testing Approach
-
-- Verify `GET /scenarios` returns the expected scenario IDs.
-- For chat:
-  Open `ArticulateRise-ChatExperience.html`, complete a sample conversation, and confirm:
-  - customer replies are generated
-  - coaching renders at the end
-  - coaching save works if configured
-- For voice:
-  Open `ArticulateRise-VoiceExperience.html`, allow microphone access, complete a short call, and confirm:
-  - session creation works
-  - audio connects
-  - transcript-based coaching appears after ending the call
-  - coaching save works if configured
-- For backend changes:
-  manually test any route whose payload shape or scenario behavior changed
-
-## Notes For Future Changes
-
-- `Lambda.js` is the main source of truth. Start there before changing frontend behavior.
-- Scenario IDs must stay in sync between the backend and the HTML files.
-- Because prompt content and evaluation rules live in code, even small wording changes can affect behavior.
-- The repo currently relies heavily on manual validation, so changes should be tested end-to-end.
+- Chat and voice are separate experiences and can point to different scenarios.
+- Cleaned scenarios in `Lambda.js` use the current runtime contract. Older scenarios may still be using compatibility paths until they are refactored.
+- Generated scenario JSON should be pasted directly into `SCENARIOS` in `Lambda.js`.
+- `simulation.stateModel.chatStepProgression` is the source of truth for chat progression in cleaned scenarios.
+- Because prompt behavior lives in scenario data and backend logic, small wording changes can change learner experience.
+- There is no full automated test suite here yet, so test changes end to end after updating scenarios, prompts, or frontend config.

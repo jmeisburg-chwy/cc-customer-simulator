@@ -1,0 +1,118 @@
+{
+  "version": "1.0",
+  "id": "scenario_id_slug",
+  "label": "Scenario Label",
+  "title": "Chewy Customer Simulator: Scenario Title",
+  "channels": ["chat", "voice"],
+  "customer": {
+    "persona": {
+      "name": "Customer Name",
+      "tone": "Customer tone and demeanor",
+      "goal": "What the customer wants by the end of the interaction"
+    },
+    "opening": {
+      "chat": "Customer opening message for the chat experience.",
+      "voice": "Customer opening statement for the voice experience."
+    },
+    "facts": {
+      "customerName": "Customer Name",
+      "petName": "Pet Name",
+      "issueSummary": "Short summary of the issue",
+      "shippingAddress": "Address or other verifying detail if relevant",
+      "orderStatus": "Current order or case status if relevant",
+      "resolutionContext": "Important background needed for resolution"
+    }
+  },
+  "frontend": {
+    "shared": {
+      "introInstructions": [
+        "Instruction 1",
+        "Instruction 2",
+        "Instruction 3"
+      ]
+    },
+    "chat": {
+      "guideTitle": "Coach Chewy Guidance",
+      "customerDisplayName": "Customer Name",
+      "hotkeyProfile": "core",
+      "guideSections": [
+        {
+          "title": "Guide section title",
+          "body": "Guide section body copy",
+          "bullets": [
+            "Bullet 1",
+            "Bullet 2",
+            "Bullet 3"
+          ],
+          "pauseAfter": true
+        }
+      ],
+      "initialTranscript": [
+        {
+          "role": "assistant",
+          "label": "Customer",
+          "meta": "Customer Name",
+          "content": "Initial customer chat message."
+        }
+      ]
+    },
+    "voice": {
+      "guideTopNote": "Short note shown above the voice guide.",
+      "customerDisplayName": "Customer Name",
+      "guideSections": [
+        {
+          "title": "Guide section title",
+          "body": "Guide section body copy",
+          "bullets": [
+            "Bullet 1",
+            "Bullet 2",
+            "Bullet 3"
+          ],
+          "pauseAfter": true
+        }
+      ],
+      "endNote": "Short note shown near the end button."
+    }
+  },
+  "simulation": {
+    "stateModel": {
+      "chatStepProgression": [
+        {
+          "id": 0,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "phrase one",
+                  "phrase two"
+                ]
+              }
+            ],
+            "any": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "phrase three",
+                  "phrase four"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "coaching": {
+    "qualityChecklist": [
+      {
+        "category": "Category name",
+        "behaviors": [
+          "Behavior to observe",
+          "Another behavior to observe"
+        ]
+      }
+    ],
+    "summaryGuidance": "How the evaluator should summarize the learner's performance."
+  }
+}
