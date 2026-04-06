@@ -1326,6 +1326,12 @@ NOTES
     const TEMP_FALLBACK_AGENT_NAME = "Test Learner";
     const DEFAULT_SCENARIO_LABEL = "Scenario 1: On Time Delivery, No partial refund Needed";
     const FALLBACK_GUIDE_TITLE = "Coach Chewy Guidance";
+    const STATIC_CHAT_INSTRUCTIONS = [
+      "Review the customer’s reason for contact.",
+      "Support the customer as you would in a live interaction.",
+      "Use Coach Chewy for guidance.",
+      "End the experience to receive feedback."
+    ];
     const FALLBACK_GUIDE_SECTIONS = [
       {
         title: "Acknowledge the Customer and Clarify the Need",
@@ -1748,11 +1754,6 @@ NOTES
         runtimeStepProgression = stepProgression;
       } else {
         console.warn("Scenario step progression config missing or invalid; falling back to built-in step config.");
-      }
-
-      const introInstructions = config?.frontend?.shared?.introInstructions;
-      if (Array.isArray(introInstructions) && introInstructions.length) {
-        renderIntroInstructions(introInstructions);
       }
 
       const guideTitle = String(config?.frontend?.chat?.guideTitle || "").trim();
@@ -2575,6 +2576,7 @@ NOTES
 
     async function initializeChatExperience() {
       applyFallbackGuideContent();
+      renderIntroInstructions(STATIC_CHAT_INSTRUCTIONS);
       runtimeHotkeyMap = { ...STANDARD_TEXT_MAP };
       runtimeStepProgression = null;
 
