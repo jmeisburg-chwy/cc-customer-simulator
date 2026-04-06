@@ -927,10 +927,10 @@ NOTES
     const toggleGuideBtn = document.getElementById('toggleGuideBtn');
     const endAreaEl = document.getElementById('endArea');
     const STATIC_VOICE_INSTRUCTIONS = [
-      "Click Start and allow microphone access.",
+      "Click <strong>Start</strong> and allow microphone access.",
       "Support the customer as you would on a live call.",
       "Use Coach Chewy for guidance.",
-      "Click End to receive feedback."
+      "Click <strong>End</strong> to receive feedback."
     ];
 
     const transcriptTurns = [];
@@ -968,7 +968,7 @@ NOTES
 
     function renderVoiceInstructions(items) {
       if (!voiceInstructionsListEl || !Array.isArray(items) || !items.length) return;
-      voiceInstructionsListEl.innerHTML = items.map((item) => `<li>${escHtml(item)}</li>`).join("");
+      voiceInstructionsListEl.innerHTML = items.map((item) => `<li>${item}</li>`).join("");
     }
 
     function renderVoiceGuideSections(sections, endNote = "") {

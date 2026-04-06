@@ -1372,6 +1372,18 @@ function buildScenarioClientConfig(s) {
           })
           .filter(Boolean)
       : [];
+  const normalizeScenarioStandardText = (items) =>
+    Array.isArray(items)
+      ? items
+          .map((item) => {
+            if (!item || typeof item !== "object") return null;
+            const hotkey = String(item.hotkey || "").trim().toLowerCase();
+            const text = String(item.template || item.text || "").trim();
+            if (!hotkey || !text) return null;
+            return { hotkey, text };
+          })
+          .filter(Boolean)
+      : [];
 
   return {
     id: String(scenario.id || "").trim(),
@@ -1413,7 +1425,8 @@ function buildScenarioClientConfig(s) {
     },
     hotkeys: {
       core: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.core),
-      rx: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.rx)
+      rx: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.rx),
+      scenario: normalizeScenarioStandardText(scenario?.frontend?.chat?.standardText)
     },
     frontend: {
       shared: {

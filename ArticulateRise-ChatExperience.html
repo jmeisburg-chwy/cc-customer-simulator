@@ -1330,7 +1330,7 @@ NOTES
       "Review the customer’s reason for contact.",
       "Support the customer as you would in a live interaction.",
       "Use Coach Chewy for guidance.",
-      "End the experience to receive feedback."
+      "Click <strong>End</strong> to review feedback."
     ];
     const FALLBACK_GUIDE_SECTIONS = [
       {
@@ -1585,7 +1585,7 @@ NOTES
       if (!instructionsListEl || !Array.isArray(items) || !items.length) return;
 
       instructionsListEl.innerHTML = items
-        .map((item) => `<li>${escHtml(item)}</li>`)
+        .map((item) => `<li>${item}</li>`)
         .join("");
     }
 
@@ -1712,6 +1712,11 @@ NOTES
           return acc;
         }, {});
       };
+
+      const scenarioMap = toMap(hotkeys?.scenario);
+      if (Object.keys(scenarioMap).length) {
+        return scenarioMap;
+      }
 
       const coreMap = toMap(hotkeys?.core);
       const rxMap = profile === "rx" ? toMap(hotkeys?.rx) : {};

@@ -13,6 +13,7 @@ Supported scenario types:
 - voice-only
 - both chat and voice
 - `core` or `rx` chat hotkey profile
+- chat scenarios with scenario-specific Standard Text hotkeys selected from the knowledge base hotkey library
 
 Hard rules:
 - Do not invent fields outside the schema below.
@@ -65,6 +66,7 @@ The final JSON must follow this runtime contract:
     - `introInstructions`
   - `chat`
     - `hotkeyProfile`
+    - `standardText`
     - `guideTitle`
     - `customerDisplayName`
     - `initialTranscript`
@@ -109,6 +111,7 @@ Required information to collect for every scenario:
 Required when `chat` is included:
 - `customer.opening.chat`
 - `frontend.chat.hotkeyProfile` as `core` or `rx`
+- ask whether the scenario should use scenario-specific Standard Text hotkeys
 - `frontend.chat.guideTitle`
 - `frontend.chat.customerDisplayName`
 - `frontend.chat.initialTranscript`
@@ -129,6 +132,12 @@ Validation rules:
 - `channels` must contain only `chat` and/or `voice`.
 - `status` should normally be `active`.
 - `frontend.chat.hotkeyProfile` must be `core` or `rx`.
+- `frontend.chat.standardText` is optional, but when present it must be an array of objects using:
+  - `hotkey`
+  - `template`
+  - optional `notes`
+- when `frontend.chat.standardText` is present, include only the hotkeys selected for that scenario.
+- do not invent Standard Text copy; use the hotkey library knowledge base as the source of truth.
 - `frontend.chat.initialTranscript[0]` should normally be:
   - `role: "assistant"`
   - `label: "Customer"`
@@ -160,7 +169,7 @@ Interview order:
    `shareOnlyIfAsked`, likely objections, closing line, and how the customer softens when the agent does well.
 10. Ask for shared intro instructions.
 11. If chat is included:
-   ask hotkey profile, guide title, customer display name, initial transcript opening, guide sections, progression checkpoints, and fallback replies.
+   ask hotkey profile, whether scenario-specific Standard Text hotkeys are needed, which hotkeys should be included, guide title, customer display name, initial transcript opening, guide sections, progression checkpoints, and fallback replies.
 12. If voice is included:
    ask guide top note, customer display name, guide sections, and end note.
 13. Ask for coaching summary guidance, checklist categories with behaviors, and evaluation criteria.
@@ -171,6 +180,10 @@ Defaulting guidance:
 - If the user does not provide a separate chat opening for `initialTranscript`, reuse `customer.opening.chat`.
 - If the user struggles with chat progression, help create 3 to 6 steps with keyword phrase groups that reflect the expected learner flow.
 - If the user struggles with checklist writing, rewrite behaviors into observable actions.
+- If chat is included, ask whether the author wants scenario-specific Standard Text hotkeys.
+- When the author wants Standard Text support, search the knowledge base hotkey library and include only the selected hotkeys in `frontend.chat.standardText`.
+- If the author describes the intent but not the exact hotkey, use the knowledge base to suggest likely matches and confirm the selection before final output.
+- Copy Standard Text content from the knowledge base into `template` fields; do not paraphrase or invent the text.
 
 Final answer format:
 Completeness Check
