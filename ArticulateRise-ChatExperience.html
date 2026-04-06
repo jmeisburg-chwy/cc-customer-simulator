@@ -933,8 +933,7 @@ NOTES
     .review-dot:nth-child(2) { animation-delay: 0.15s; }
     .review-dot:nth-child(3) { animation-delay: 0.3s; }
 
-    .standard-text-overlay,
-    .name-overlay {
+    .standard-text-overlay {
       position: absolute;
       inset: 0;
       background: rgba(17, 24, 39, 0.42);
@@ -945,13 +944,11 @@ NOTES
       z-index: 32;
     }
 
-    .standard-text-overlay.active,
-    .name-overlay.active {
+    .standard-text-overlay.active {
       display: flex;
     }
 
-    .standard-text-modal,
-    .name-modal {
+    .standard-text-modal {
       width: 100%;
       max-width: 560px;
       background: #ffffff;
@@ -961,16 +958,14 @@ NOTES
       border: 1px solid #e5e7eb;
     }
 
-    .standard-text-top,
-    .name-top {
+    .standard-text-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 18px 18px 14px 18px;
     }
 
-    .standard-text-title,
-    .name-title {
+    .standard-text-title {
       margin: 0;
       font-size: 20px;
       line-height: 1.2;
@@ -995,13 +990,11 @@ NOTES
       flex-shrink: 0;
     }
 
-    .standard-text-body,
-    .name-body {
+    .standard-text-body {
       padding: 0 18px 18px 18px;
     }
 
-    .standard-text-label,
-    .name-label {
+    .standard-text-label {
       display: block;
       margin: 0 0 8px 0;
       font-size: 15px;
@@ -1023,33 +1016,17 @@ NOTES
       background: #ffffff;
     }
 
-    .name-input {
-      width: 100%;
-      height: 50px;
-      border: 1px solid #d1d5db;
-      border-radius: 999px;
-      padding: 0 18px;
-      font: inherit;
-      font-size: 18px;
-      color: #111827;
-      outline: none;
-      background: #ffffff;
-    }
-
-    .standard-text-input::placeholder,
-    .name-input::placeholder {
+    .standard-text-input::placeholder {
       color: #9ca3af;
       opacity: 1;
     }
 
-    .standard-text-input:focus,
-    .name-input:focus {
+    .standard-text-input:focus {
       border-color: #7da2ff;
       box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
     }
 
-    .standard-text-error,
-    .name-error {
+    .standard-text-error {
       display: none;
       margin-top: 10px;
       font-size: 14px;
@@ -1057,39 +1034,8 @@ NOTES
       color: #b42318;
     }
 
-    .standard-text-error.active,
-    .name-error.active {
+    .standard-text-error.active {
       display: block;
-    }
-
-    .name-copy {
-      margin: 0 0 16px 0;
-      font-size: 15px;
-      line-height: 1.5;
-      color: #374151;
-    }
-
-    .name-actions {
-      margin-top: 16px;
-      display: flex;
-      justify-content: flex-start;
-    }
-
-    .name-submit-btn {
-      min-width: 170px;
-      border: 1px solid var(--accent);
-      background: var(--accent);
-      color: #ffffff;
-      border-radius: 999px;
-      padding: 14px 18px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .name-submit-btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
     }
 
     .standard-text-toast {
@@ -1277,30 +1223,6 @@ NOTES
                       </div>
                     </div>
 
-                    <div class="name-overlay" id="nameOverlay" aria-hidden="true">
-                      <div class="name-modal" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
-                        <div class="name-top">
-                          <h2 class="name-title" id="nameModalTitle">Before you begin</h2>
-                        </div>
-                        <div class="name-body">
-                          <p class="name-copy">Your full name could not be loaded automatically. Enter your full name to begin this chat simulation.</p>
-                          <label class="name-label" for="nameInput">Agent full name:</label>
-                          <input
-                            class="name-input"
-                            id="nameInput"
-                            type="text"
-                            autocomplete="name"
-                            spellcheck="false"
-                            placeholder="Enter your first name and last name"
-                          />
-                          <div class="name-error" id="nameError">Please enter your full name using first name and last name.</div>
-                          <div class="name-actions">
-                            <button class="name-submit-btn" type="button" id="nameSubmitBtn">Start Chat</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     <div class="review-overlay" id="reviewOverlay" aria-hidden="true">
                       <div class="review-modal" role="status" aria-live="polite">
                         <div class="review-modal-inner">
@@ -1401,6 +1323,7 @@ NOTES
     const STORAGE_KEY = `ccs_coaching:${SCENARIO_ID}:chat`;
     const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
     const AGENT_ID_STORAGE_KEY = "ccs_agentId";
+    const TEMP_FALLBACK_AGENT_NAME = "Test Learner";
     const DEFAULT_SCENARIO_LABEL = "Scenario 1: On Time Delivery, No partial refund Needed";
     const FALLBACK_GUIDE_TITLE = "Coach Chewy Guidance";
     const FALLBACK_GUIDE_SECTIONS = [
@@ -1545,11 +1468,6 @@ NOTES
     const standardTextCloseBtn = document.getElementById("standardTextCloseBtn");
     const standardTextToast = document.getElementById("standardTextToast");
 
-    const nameOverlay = document.getElementById("nameOverlay");
-    const nameInput = document.getElementById("nameInput");
-    const nameError = document.getElementById("nameError");
-    const nameSubmitBtn = document.getElementById("nameSubmitBtn");
-
     const chatStartedText = document.getElementById("chatStartedText");
     const instructionsListEl = document.getElementById("instructionsList");
 
@@ -1649,10 +1567,6 @@ NOTES
       const suffix = hours >= 12 ? "PM" : "AM";
       hours = hours % 12 || 12;
       return `${hours}:${minutes} ${suffix}`;
-    }
-
-    function hasFullName(value) {
-      return value.trim().split(/\s+/).filter(Boolean).length >= 2;
     }
 
     function renderTranscript() {
@@ -2070,7 +1984,7 @@ NOTES
     }
 
     function openEndModal() {
-      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen()) return;
       endModalOverlay.classList.add("active");
       endModalOverlay.setAttribute("aria-hidden", "false");
     }
@@ -2094,12 +2008,8 @@ NOTES
       return standardTextOverlay.classList.contains("active");
     }
 
-    function isNameModalOpen() {
-      return nameOverlay.classList.contains("active");
-    }
-
     function openStandardTextModal() {
-      if (!sessionStarted || chatEnded || isEvaluating || isNameModalOpen()) return;
+      if (!sessionStarted || chatEnded || isEvaluating) return;
       closeEndModal();
       standardTextOverlay.classList.add("active");
       standardTextOverlay.setAttribute("aria-hidden", "false");
@@ -2138,21 +2048,6 @@ NOTES
       autoResizeTextarea();
       closeStandardTextModal();
       showStandardTextToast(`Standard text inserted: ${hotkey.toUpperCase()}`);
-    }
-
-    function openNameModal() {
-      if (sessionStarted) return;
-      closeEndModal();
-      closeStandardTextModal();
-      nameOverlay.classList.add("active");
-      nameOverlay.setAttribute("aria-hidden", "false");
-      nameError.classList.remove("active");
-      setTimeout(() => nameInput.focus(), 0);
-    }
-
-    function closeNameModal() {
-      nameOverlay.classList.remove("active");
-      nameOverlay.setAttribute("aria-hidden", "true");
     }
 
     function getScormApi2004() {
@@ -2214,22 +2109,33 @@ NOTES
       }
     }
 
+    function getQueryParams() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        agentId: String(p.get("agentId") || "").trim(),
+        agentName: String(p.get("agentName") || "").trim()
+      };
+    }
+
     function getAgentIdentity() {
+      const qp = getQueryParams();
       const storedName = localStorage.getItem(AGENT_NAME_STORAGE_KEY) || "";
       const storedId = localStorage.getItem(AGENT_ID_STORAGE_KEY) || "";
       const scormInfo = readScormLearnerInfo();
 
       const resolvedName =
         String(agentName || "").trim() ||
-        String(nameInput.value || "").trim() ||
         scormInfo.name ||
-        storedName;
+        qp.agentName ||
+        storedName ||
+        TEMP_FALLBACK_AGENT_NAME;
 
       const resolvedId =
         String(agentId || "").trim() ||
         scormInfo.id ||
+        qp.agentId ||
         storedId ||
-        resolvedName ||
+        (resolvedName === TEMP_FALLBACK_AGENT_NAME ? "test-learner" : resolvedName) ||
         "unknown";
 
       if (resolvedName) localStorage.setItem(AGENT_NAME_STORAGE_KEY, resolvedName);
@@ -2237,21 +2143,18 @@ NOTES
 
       return {
         agentId: resolvedId,
-        agentName: resolvedName || "Unknown Agent"
+        agentName: resolvedName || TEMP_FALLBACK_AGENT_NAME
       };
     }
 
-    function beginChatSession(resolvedName, resolvedId) {
-      const finalName = String(resolvedName || nameInput.value || "").trim();
-      const finalId = String(resolvedId || "").trim();
-
-      if (!hasFullName(finalName)) {
-        nameError.classList.add("active");
-        return;
-      }
+    function beginChatSession() {
+      if (sessionStarted) return;
+      const ident = getAgentIdentity();
+      const finalName = String(ident.agentName || TEMP_FALLBACK_AGENT_NAME).trim() || TEMP_FALLBACK_AGENT_NAME;
+      const finalId = String(ident.agentId || "").trim() || (finalName === TEMP_FALLBACK_AGENT_NAME ? "test-learner" : finalName);
 
       agentName = finalName;
-      agentId = finalId || finalName;
+      agentId = finalId;
 
       localStorage.setItem(AGENT_NAME_STORAGE_KEY, agentName);
       localStorage.setItem(AGENT_ID_STORAGE_KEY, agentId);
@@ -2260,27 +2163,9 @@ NOTES
       sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
       startedAt = new Date().toISOString();
 
-      nameError.classList.remove("active");
-      closeNameModal();
       setChatEndedState(false);
       chatStartedText.textContent = formatStartedTime();
       composerEl.focus();
-    }
-
-    function tryAutoStartFromScorm() {
-      const scormInfo = readScormLearnerInfo();
-
-      if (hasFullName(scormInfo.name)) {
-        nameInput.value = scormInfo.name;
-        beginChatSession(scormInfo.name, scormInfo.id);
-        return true;
-      }
-
-      if (scormInfo.name) {
-        nameInput.value = scormInfo.name;
-      }
-
-      return false;
     }
 
     function buildQualityBehaviorsFromEvaluation(evaluation) {
@@ -2413,7 +2298,7 @@ NOTES
     }
 
     async function sendMessage() {
-      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen()) return;
 
       const text = composerEl.value.trim();
       if (!text) return;
@@ -2468,6 +2353,9 @@ NOTES
 
       const payload = {
         scenarioId: SCENARIO_ID,
+        agentId: getAgentIdentity().agentId,
+        agentName: getAgentIdentity().agentName,
+        sessionId,
         latestAgentMessage,
         currentStep,
         transcript: transcript.map((turn) => ({
@@ -2505,6 +2393,9 @@ NOTES
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scenario: SCENARIO_ID,
+          agentId: getAgentIdentity().agentId,
+          agentName: getAgentIdentity().agentName,
+          sessionId,
           transcript: transcriptToEvalText()
         })
       }, 60000);
@@ -2556,7 +2447,7 @@ NOTES
     }
 
     async function completeEndChat() {
-      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen() || isNameModalOpen()) return;
+      if (!sessionStarted || chatEnded || isEvaluating || isStandardTextOpen()) return;
 
       closeEndModal();
       isEvaluating = true;
@@ -2606,12 +2497,7 @@ NOTES
       if (chatAccordion.open) {
         setTimeout(fitStage, 50);
         setTimeout(fitStage, 200);
-        setTimeout(() => {
-          if (!sessionStarted) {
-            const autoStarted = tryAutoStartFromScorm();
-            if (!autoStarted) openNameModal();
-          }
-        }, 0);
+        setTimeout(beginChatSession, 0);
       }
     });
 
@@ -2624,7 +2510,6 @@ NOTES
     closeModalBtn.addEventListener("click", closeEndModal);
 
     standardTextCloseBtn.addEventListener("click", closeStandardTextModal);
-    nameSubmitBtn.addEventListener("click", () => beginChatSession());
 
     standardTextOverlay.addEventListener("click", (event) => {
       if (event.target === standardTextOverlay) closeStandardTextModal();
@@ -2638,17 +2523,6 @@ NOTES
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
-      }
-    });
-
-    nameInput.addEventListener("input", () => {
-      nameError.classList.remove("active");
-    });
-
-    nameInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        beginChatSession();
       }
     });
 
@@ -2670,8 +2544,6 @@ NOTES
 
     document.addEventListener("keydown", (event) => {
       if (!chatAccordion.open) return;
-
-      if (isNameModalOpen()) return;
 
       if (event.key === "F8") {
         event.preventDefault();
@@ -2698,15 +2570,8 @@ NOTES
 
     const storedAgentName = localStorage.getItem(AGENT_NAME_STORAGE_KEY) || "";
     const storedAgentId = localStorage.getItem(AGENT_ID_STORAGE_KEY) || "";
-
-    if (storedAgentName) {
-      nameInput.value = storedAgentName;
-      agentName = storedAgentName;
-    }
-
-    if (storedAgentId) {
-      agentId = storedAgentId;
-    }
+    if (storedAgentName) agentName = storedAgentName;
+    if (storedAgentId) agentId = storedAgentId;
 
     async function initializeChatExperience() {
       applyFallbackGuideContent();
@@ -2732,12 +2597,7 @@ NOTES
       fitStage();
       restorePersistedFeedback();
 
-      if (chatAccordion.open) {
-        const autoStarted = tryAutoStartFromScorm();
-        if (!autoStarted && !sessionStarted) {
-          openNameModal();
-        }
-      }
+      if (chatAccordion.open) beginChatSession();
     }
 
     initializeChatExperience();

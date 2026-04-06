@@ -280,30 +280,6 @@ NOTES
       min-width: 340px;
     }
 
-    .name-field {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .name-field-label {
-      font-size: 15px;
-      font-weight: 700 !important;
-      color: var(--chewy-blue) !important;
-    }
-
-    .name-error {
-      display: none;
-      font-size: 14px;
-      color: var(--error);
-      margin-top: 2px;
-    }
-
-    .name-error.show {
-      display: block;
-    }
-
     .btn {
       background: var(--chewy-blue);
       color: #fff;
@@ -769,14 +745,6 @@ NOTES
             </div>
 
             <div class="row">
-              <label class="name-field" id="nameField" for="agentName">
-                <span class="name-field-label">Agent name:</span>
-                <input id="agentName" placeholder="Enter your first name and last name" autocomplete="name" />
-                <div id="nameError" class="name-error">Please enter your full name using first name and last name.</div>
-              </label>
-            </div>
-
-            <div class="row">
               <label class="scenario-label" style="display:none;">
                 <span class="scenario-title">Scenario:</span>
                 <select id="scenario" aria-label="Scenario"></select>
@@ -840,9 +808,6 @@ NOTES
 
     voiceAccordion.addEventListener("toggle", () => {
       syncAccordionLabel();
-      if (voiceAccordion.open) {
-        handleNameFieldVisibility();
-      }
     });
     syncAccordionLabel();
 
@@ -869,6 +834,7 @@ NOTES
     const STORE = window.localStorage;
     const AGENT_NAME_STORAGE_KEY = "ccs_agentName";
     const AGENT_ID_STORAGE_KEY = "ccs_agentId";
+    const TEMP_FALLBACK_AGENT_NAME = "Test Learner";
 
     const EVALUATION_RETRY_INITIAL_DELAY_MS = 2000;
     const EVALUATION_RETRY_MAX_DELAY_MS = 15000;
@@ -952,9 +918,6 @@ NOTES
     const scenarioSel = document.getElementById('scenario');
     const coachContainer = document.getElementById('coachContainer');
     const hintEl = document.getElementById('hint');
-    const agentNameInput = document.getElementById('agentName');
-    const nameFieldEl = document.getElementById('nameField');
-    const nameErrorEl = document.getElementById('nameError');
 
     const guideShellEl = document.getElementById('guideShell');
     const guideTopNoteEl = document.getElementById('guideTopNote');
@@ -981,21 +944,6 @@ NOTES
 
     function wait(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    function hasFullName(value) {
-      return String(value || "").trim().split(/\s+/).filter(Boolean).length >= 2;
-    }
-
-    function showNameError(message = "Please enter your full name using first name and last name.") {
-      if (!nameErrorEl) return;
-      nameErrorEl.textContent = message;
-      nameErrorEl.classList.add("show");
-    }
-
-    function hideNameError() {
-      if (!nameErrorEl) return;
-      nameErrorEl.classList.remove("show");
     }
 
     function setStatus(s) {
@@ -1166,47 +1114,24 @@ NOTES
       }
     }
 
-    function handleNameFieldVisibility() {
-      const scormInfo = readScormLearnerInfo();
-
-      if (hasFullName(scormInfo.name)) {
-        if (nameFieldEl) nameFieldEl.style.display = "none";
-        if (agentNameInput) agentNameInput.value = scormInfo.name;
-
-        try {
-          STORE.setItem(AGENT_NAME_STORAGE_KEY, scormInfo.name);
-          if (scormInfo.id) {
-            STORE.setItem(AGENT_ID_STORAGE_KEY, scormInfo.id);
-          }
-        } catch (_) { }
-
-        hideNameError();
-        return;
-      }
-
-      if (nameFieldEl) nameFieldEl.style.display = "flex";
-    }
-
     function getAgentIdentity() {
       const qp = getQueryParams();
       const scormInfo = readScormLearnerInfo();
-      const inputName = agentNameInput ? agentNameInput.value.trim() : "";
       const storedAgentName = STORE.getItem(AGENT_NAME_STORAGE_KEY) || "";
       const storedAgentId = STORE.getItem(AGENT_ID_STORAGE_KEY) || "";
 
       const resolvedName = String(
         scormInfo.name ||
-        inputName ||
         qp.agentName ||
         storedAgentName ||
-        ""
+        TEMP_FALLBACK_AGENT_NAME
       ).trim();
 
       const resolvedId = String(
         scormInfo.id ||
         qp.agentId ||
         storedAgentId ||
-        resolvedName ||
+        (resolvedName === TEMP_FALLBACK_AGENT_NAME ? "test-learner" : resolvedName) ||
         ""
       ).trim();
 
@@ -1220,7 +1145,7 @@ NOTES
 
       return {
         agentId: resolvedId || "unknown",
-        agentName: resolvedName || "Unknown Agent"
+        agentName: resolvedName || TEMP_FALLBACK_AGENT_NAME
       };
     }
 
@@ -1741,6 +1666,9 @@ NOTES
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             scenario: scenarioId,
+            sessionId,
+            agentId: getAgentIdentity().agentId,
+            agentName: getAgentIdentity().agentName,
             transcript
           })
         }, 60000);
@@ -1772,28 +1700,9 @@ NOTES
 
     async function start() {
       evaluationRetryCancelled = false;
-      handleNameFieldVisibility();
-
-      const scormInfo = readScormLearnerInfo();
-      const enteredName = agentNameInput ? agentNameInput.value.trim() : "";
-      const finalName = scormInfo.name || enteredName;
-
-      if (!hasFullName(finalName)) {
-        showNameError();
-        setStatus("Enter your full name to begin.");
-        if (agentNameInput) agentNameInput.focus();
-        return;
-      }
-
-      if (agentNameInput && agentNameInput.value.trim() !== finalName) {
-        agentNameInput.value = finalName;
-      }
-
-      hideNameError();
-      try { STORE.setItem(AGENT_NAME_STORAGE_KEY, finalName); } catch (_) { }
-      if (scormInfo.id) {
-        try { STORE.setItem(AGENT_ID_STORAGE_KEY, scormInfo.id); } catch (_) { }
-      }
+      const ident = getAgentIdentity();
+      try { STORE.setItem(AGENT_NAME_STORAGE_KEY, ident.agentName); } catch (_) { }
+      try { STORE.setItem(AGENT_ID_STORAGE_KEY, ident.agentId); } catch (_) { }
 
       clearPersisted();
 
@@ -1819,7 +1728,12 @@ NOTES
       const ephem = await fetchJSON(SESSION_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario: getScenarioId() })
+        body: JSON.stringify({
+          scenario: getScenarioId(),
+          sessionId,
+          agentId: ident.agentId,
+          agentName: ident.agentName
+        })
       }, 20000);
 
       if (!ephem?.client_secret?.value) {
@@ -2050,29 +1964,10 @@ NOTES
     startBtn.onclick = start;
     endBtn.onclick = endCall;
 
-    if (agentNameInput) {
-      const storedAgentName = STORE.getItem(AGENT_NAME_STORAGE_KEY) || "";
-      if (storedAgentName) {
-        agentNameInput.value = storedAgentName;
-      }
-
-      agentNameInput.addEventListener("input", () => {
-        hideNameError();
-      });
-
-      agentNameInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          start();
-        }
-      });
-    }
-
     applyFallbackVoiceDisplayContent();
 
     loadScenarios().then(() => {
       tryRestoreCoachingScreen();
-      handleNameFieldVisibility();
     });
   </script>
 </body>
