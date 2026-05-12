@@ -35,6 +35,15 @@
       "guideTitle": "Coach Chewy Guidance",
       "customerDisplayName": "Customer Name",
       "hotkeyProfile": "core",
+      "standardText": [
+        {
+          "hotkey": "DE6",
+          "template": "Exact Standard Text copied from the hotkey library.",
+          "notes": [
+            "Optional personalization note."
+          ]
+        }
+      ],
       "guideSections": [
         {
           "title": "Guide section title",

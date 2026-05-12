@@ -1,30 +1,3 @@
-/*
-CHEWY CUSTOMER SIMULATOR: LAMBDA BACKEND
-
-HOW TO USE
-1. Add or update scenario objects inside SCENARIOS.
-2. Use the custom GPT "Customer Simulator Scenario Builder" to generate a new scenario JSON.
-3. Paste the generated scenario into SCENARIOS using a unique scenario id.
-4. Deploy Lambda after saving changes.
-5. In the chat or voice frontend, set SCENARIO_OVERRIDE to that same scenario id.
-
-AWS SETUP
-This Lambda expects these environment variables:
-- OPENAI_API_KEY
-- COACHING_TABLE
-- INGEST_TOKEN (optional)
-- AWS_REGION
-
-FRONTEND SETUP
-Your Rise chat/voice files must point to this Lambda's API Gateway base URL.
-
-NOTES
-- Chat and voice are separate frontend experiences.
-- Scenario content is driven by the SCENARIOS object below.
-- The recommended way to create new scenarios is with the GPT: Customer Simulator Scenario Builder.
-*/
-
-
 // Runtime: Node.js 24.x
 // Handler: index.handler
 
@@ -37,15 +10,16 @@ const INGEST_TOKEN = process.env.INGEST_TOKEN || "";
 const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-2";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
-const REALTIME_SESSIONS_URL = "https://api.openai.com/v1/realtime/sessions";
+const REALTIME_CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets";
 
 const DEFAULT_SCENARIO_ID = "pharmacy_order_cancellation";
 
 const REFLECTION_LINE =
   "Take a moment to review the feedback and think about how you’ll apply it on your next customer call.";
 
-const REALTIME_MODEL = "gpt-4o-mini-realtime-preview-2024-12-17";
-const CHAT_MODEL = "gpt-4o-mini";
+const REALTIME_MODEL = "gpt-realtime-2";
+const CHAT_MODEL = process.env.CHAT_MODEL || "gpt-5-mini";
+const EVAL_MODEL = process.env.EVAL_MODEL || "gpt-5.4-mini";
 
 const GLOBAL_CHAT_HOTKEYS = {
   core: [
@@ -68,13 +42,368 @@ const GLOBAL_CHAT_HOTKEYS = {
 };
 
 const REALTIME_TURN_DETECTION = {
-  type: "semantic_vad",
-  eagerness: "low",
+  type: "server_vad",
   create_response: true,
   interrupt_response: true
 };
 
 const SCENARIOS = {
+
+  lost_order_replacement_refund: {
+    id: "lost_order_replacement_refund",
+    version: 1,
+    status: "active",
+    channels: ["chat", "voice"],
+    label: "Lost Order Replacement and Refund",
+    title: "Lost Order, Replacement and Refund",
+    voice: "alloy",
+    catalog: {
+      label: "Lost Order Replacement and Refund",
+      title: "Lost Order, Replacement and Refund",
+      shortTitle: "Lost Order Refund",
+      description:
+        "A customer contacts support after learning their order for Fred’s fish supplies was marked as lost. The learner should respond with empathy, explain the situation clearly, offer a no-cost replacement, confirm the shipping address, and set expectations for the refund and replacement timeline.",
+      domain: "Customer Service",
+      difficulty: "beginner",
+      tags: [
+        "lost order",
+        "replacement",
+        "refund",
+        "shipping issue",
+        "empathy",
+        "address verification"
+      ]
+    },
+    roles: {
+      learnerRole: "Chewy Customer Service Agent",
+      customerRole: "Concerned Pet Parent"
+    },
+    customer: {
+      persona: {
+        name: "Jessica Martinez",
+        tone: "concerned but polite",
+        goal: "Get clarity on the lost order and ensure Fred’s supplies arrive quickly",
+        personality:
+          "responsible, caring pet parent, slightly anxious when pet needs are at risk, cooperative when reassured",
+        pace: "moderate"
+      },
+      opening: {
+        chat: "I just got an update that my order for Fred’s fish supplies was marked as lost. What’s going on?",
+        voice:
+          "Hi, I just saw that my order for Fred’s fish supplies was marked as lost, and I’m really concerned. Can you tell me what’s happening?"
+      },
+      facts: {
+        customerName: "Jessica Martinez",
+        petName: "Fred",
+        issueSummary:
+          "The order for Fred’s fish supplies was marked as lost by the carrier.",
+        medicationOrProduct: "Fish supplies",
+        address: "4321 Oak St., Miami",
+        rootCauseBelief: "The order was marked as lost by the carrier.",
+        urgency: "Customer needs the supplies soon.",
+        resolutionContext:
+          "Customer has not yet received a refund or replacement and is open to solutions if clearly explained."
+      },
+      behavior: {
+        shareOnlyIfAsked: [
+          "Shipping address details",
+          "Level of urgency beyond initial concern"
+        ],
+        allowedObjections: [
+          "Concern about delivery timing",
+          "Worry about pet going without supplies"
+        ],
+        closingLine: "Perfect, thanks for making this easier.",
+        successSofteningRule:
+          "Becomes more reassured and cooperative once the agent clearly explains the solution and timelines"
+      }
+    },
+    frontend: {
+      shared: {
+        introInstructions: [
+          "Help the customer understand what happened to their order.",
+          "Show empathy and guide them through a clear solution including replacement and refund.",
+          "Ensure the customer feels confident about timing and next steps.",
+          "Keep the interaction warm and supportive."
+        ]
+      },
+      chat: {
+        hotkeyProfile: "core",
+        guideTitle: "Handling a Lost Order with Replacement and Refund",
+        customerDisplayName: "Jessica Martinez",
+        initialTranscript: [
+          {
+            role: "assistant",
+            label: "Customer",
+            meta: "Jessica Martinez",
+            content:
+              "I just got an update that my order for Fred’s fish supplies was marked as lost. What’s going on?"
+          }
+        ],
+        guideSections: [
+          {
+            title: "Acknowledge and Show Empathy",
+            body:
+              "The customer is concerned because the order was marked lost and the pet needs the supplies soon.",
+            bullets: [
+              "Acknowledge the frustration and concern.",
+              "Use warm, reassuring language.",
+              "Personalize the response by referencing Fred when appropriate."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Explain the Lost Order Clearly",
+            body:
+              "The customer needs a simple explanation of what happened and why support is helping now.",
+            bullets: [
+              "Explain that the carrier marked the order as lost.",
+              "Use direct, simple wording.",
+              "Avoid vague or overly technical phrasing."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Offer the Replacement",
+            body:
+              "The customer should understand the replacement option and feel reassured that it will not cost extra.",
+            bullets: [
+              "Offer a no-cost replacement.",
+              "Explain the replacement in a confident and supportive way.",
+              "Make clear what will happen next."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Set Expectations for Timing",
+            body:
+              "The customer wants to know when the replacement and refund will happen.",
+            bullets: [
+              "Set expectations for replacement processing and delivery timing.",
+              "Explain refund timing clearly.",
+              "Reduce uncertainty by summarizing next steps."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Verify Shipping Details and Close",
+            body:
+              "Before finalizing the solution, the agent should confirm the shipping address and leave the customer feeling supported.",
+            bullets: [
+              "Confirm the shipping address before completing the solution.",
+              "Reassure the customer that the issue is being handled.",
+              "Offer additional help before closing."
+            ],
+            pauseAfter: false
+          }
+        ]
+      },
+      voice: {
+        guideTopNote:
+          "Stay calm, empathetic, and reassuring. Use a supportive tone and clearly explain timelines.",
+        customerDisplayName: "Jessica Martinez",
+        guideSections: [
+          {
+            title: "Open with Empathy",
+            body:
+              "The customer is worried about the lost order and needs immediate reassurance.",
+            bullets: [
+              "Acknowledge the concern right away.",
+              "Use a calm, supportive tone.",
+              "Show understanding about the urgency of Fred’s supplies."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Explain the Issue Clearly",
+            body:
+              "The customer wants a clear explanation of what happened with the shipment.",
+            bullets: [
+              "Explain that the carrier marked the order as lost.",
+              "Keep the explanation simple and confident.",
+              "Avoid unnecessary detail."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Offer Resolution and Set Expectations",
+            body:
+              "The customer should leave the call understanding the replacement, refund, and next steps.",
+            bullets: [
+              "Offer the replacement at no cost.",
+              "Confirm the shipping address.",
+              "Explain timing for both the replacement and refund."
+            ],
+            pauseAfter: true
+          },
+          {
+            title: "Close with Reassurance",
+            body: "End the interaction with warmth and confidence.",
+            bullets: [
+              "Reassure the customer that the issue is being handled.",
+              "Offer additional help for Fred’s needs.",
+              "Close in a supportive and caring tone."
+            ],
+            pauseAfter: false
+          }
+        ],
+        endNote:
+          "Close by reassuring the customer and offering additional help for their pet."
+      }
+    },
+    simulation: {
+      prompting: {
+        sharedBehaviorRules: [
+          "Stay in character as the customer.",
+          "Do not provide solutions unless prompted by the agent.",
+          "Respond naturally and conversationally."
+        ],
+        chatSpecificRules: [
+          "Keep responses concise, usually 1 to 3 short sentences."
+        ],
+        voiceSpecificRules: [
+          "Speak naturally with slight emotional tone and pauses."
+        ]
+      },
+      stateModel: {
+        trackCurrentStep: true,
+        stepAdvanceStrategy: "frontend_keyword_checks",
+        chatStepProgression: [
+          {
+            id: 0,
+            match: {
+              any: [
+                {
+                  op: "contains_any",
+                  phrases: [
+                    "sorry",
+                    "understand",
+                    "that sounds stressful",
+                    "i can imagine"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            id: 1,
+            match: {
+              any: [
+                {
+                  op: "contains_any",
+                  phrases: [
+                    "lost",
+                    "carrier",
+                    "shipping issue",
+                    "marked as lost"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            id: 2,
+            match: {
+              any: [
+                {
+                  op: "contains_any",
+                  phrases: [
+                    "replacement",
+                    "new order",
+                    "no extra cost"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            id: 3,
+            match: {
+              any: [
+                {
+                  op: "contains_any",
+                  phrases: [
+                    "1-3 days",
+                    "24 hours",
+                    "shipping time",
+                    "delivery"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            id: 4,
+            match: {
+              any: [
+                {
+                  op: "contains_any",
+                  phrases: [
+                    "confirm address",
+                    "verify address",
+                    "refund",
+                    "3-5 days"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        fallbackReplies: {
+          chat: [
+            "I’m sorry, I’m just really worried about getting Fred’s supplies soon.",
+            "Can you tell me what happens next?",
+            "I just want to make sure this is taken care of."
+          ]
+        }
+      }
+    },
+    coaching: {
+      summaryGuidance:
+        "Focus on empathy, clarity, and proactive problem-solving. Ensure the customer understands what happened, what will happen next, and feels confident their pet’s needs are being prioritized.",
+      qualityChecklist: [
+        {
+          category: "Empathy",
+          behaviors: [
+            "Acknowledges customer concern about the lost order",
+            "References Fred to personalize care"
+          ]
+        },
+        {
+          category: "Clarity",
+          behaviors: [
+            "Clearly explains that the order was marked lost by the carrier",
+            "Uses simple and direct language"
+          ]
+        },
+        {
+          category: "Solutioning",
+          behaviors: [
+            "Offers replacement at no cost",
+            "Explains refund without being asked"
+          ]
+        },
+        {
+          category: "Expectation Setting",
+          behaviors: [
+            "Provides shipping timeline",
+            "Provides refund timeline"
+          ]
+        },
+        {
+          category: "Verification",
+          behaviors: [
+            "Confirms shipping address before completing the solution"
+          ]
+        }
+      ],
+      evaluationCriteria:
+        "Evaluate only what the agent said in the transcript. Check whether the agent demonstrated empathy early in the interaction, provided a clear and accurate explanation of the issue, offered a complete solution including replacement and refund, set accurate expectations for delivery and refund timing, and maintained a supportive and reassuring tone throughout."
+    }
+  },
+
+
+
   late_delivery_20_partial_refund: {
     id: "late_delivery_20_partial_refund",
     version: 1,
@@ -1372,6 +1701,18 @@ function buildScenarioClientConfig(s) {
           })
           .filter(Boolean)
       : [];
+  const normalizeScenarioStandardText = (items) =>
+    Array.isArray(items)
+      ? items
+          .map((item) => {
+            if (!item || typeof item !== "object") return null;
+            const hotkey = String(item.hotkey || "").trim().toLowerCase();
+            const text = String(item.template || item.text || "").trim();
+            if (!hotkey || !text) return null;
+            return { hotkey, text };
+          })
+          .filter(Boolean)
+      : [];
 
   return {
     id: String(scenario.id || "").trim(),
@@ -1413,7 +1754,8 @@ function buildScenarioClientConfig(s) {
     },
     hotkeys: {
       core: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.core),
-      rx: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.rx)
+      rx: normalizeHotkeys(GLOBAL_CHAT_HOTKEYS.rx),
+      scenario: normalizeScenarioStandardText(scenario?.frontend?.chat?.standardText)
     },
     frontend: {
       shared: {
@@ -1866,6 +2208,17 @@ function extractStructuredResponseJson(j) {
   return safeJsonParse(text);
 }
 
+function getLowLatencyReasoningEffort(model) {
+  const m = String(model || "").toLowerCase();
+  if (!m.startsWith("gpt-5")) return "";
+  return "low";
+}
+
+function buildLowLatencyResponseOptions(model) {
+  const effort = getLowLatencyReasoningEffort(model);
+  return effort ? { reasoning: { effort } } : {};
+}
+
 function formatDateParts(isoString) {
   const date = new Date(isoString);
   if (Number.isNaN(date.getTime())) {
@@ -2199,22 +2552,34 @@ exports.handler = async (event) => {
       const scenario = getScenario(body.scenario);
       const instructions = buildRealtimeInstructions(scenario);
       const voice = scenario && scenario.voice ? scenario.voice : "marin";
+      const rawSafetyId = String(body.agentId || body.sessionId || "").trim();
+      const safetyIdentifier = rawSafetyId ? sha256Hex(`customer-simulator:${rawSafetyId}`) : "";
 
       const payload = {
-        model: REALTIME_MODEL,
-        voice,
-        modalities: ["audio", "text"],
-        turn_detection: REALTIME_TURN_DETECTION,
-        instructions
+        session: {
+          type: "realtime",
+          model: REALTIME_MODEL,
+          instructions,
+          output_modalities: ["audio"],
+          audio: {
+            input: {
+              turn_detection: REALTIME_TURN_DETECTION
+            },
+            output: {
+              voice
+            }
+          }
+        }
       };
 
       const res = await fetchWithTimeout(
-        REALTIME_SESSIONS_URL,
+        REALTIME_CLIENT_SECRETS_URL,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${OPENAI_API_KEY}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            ...(safetyIdentifier ? { "OpenAI-Safety-Identifier": safetyIdentifier } : {})
           },
           body: JSON.stringify(payload)
         },
@@ -2227,6 +2592,12 @@ exports.handler = async (event) => {
       }
 
       const out = safeJsonParse(text) || {};
+      if (!out.client_secret && out.value) {
+        out.client_secret = { value: out.value, expires_at: out.expires_at };
+      }
+      if (!out.value && out.client_secret && out.client_secret.value) {
+        out.value = out.client_secret.value;
+      }
       out._scenario = { id: scenario.id, label: scenario.label, title: scenario.title };
       return json(out);
     }
@@ -2276,10 +2647,13 @@ exports.handler = async (event) => {
           body: JSON.stringify({
             model: CHAT_MODEL,
             input,
+            ...buildLowLatencyResponseOptions(CHAT_MODEL),
             text: {
+              verbosity: "low",
               format: {
                 type: "json_schema",
                 name: "chat_turn",
+                strict: true,
                 schema: responseSchema
               }
             }
@@ -2343,6 +2717,8 @@ OUTPUT RULES
 - No code fences.
 - Summary must be one short paragraph, as concise as possible.
 - Write the summary in second person, speaking directly to the learner using "you" and "your". Do not refer to "the agent" or "the learner" in the summary.
+- Keep transcriptEvidence to a short phrase or sentence from the agent when available.
+- Keep each explanation to one short sentence.
 `.trim();
 
       const userPrompt = `
@@ -2415,21 +2791,25 @@ ${transcript}
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              model: CHAT_MODEL,
+              model: EVAL_MODEL,
               input: [
                 { role: "system", content: system },
                 { role: "user", content: userPrompt }
               ],
+              ...buildLowLatencyResponseOptions(EVAL_MODEL),
+              max_output_tokens: 3500,
               text: {
+                verbosity: "low",
                 format: {
                   type: "json_schema",
                   name: "quality_eval",
+                  strict: true,
                   schema
                 }
               }
             })
           },
-          60000
+          25000
         );
 
         status = r1.status;

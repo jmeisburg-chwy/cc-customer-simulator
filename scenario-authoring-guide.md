@@ -36,6 +36,7 @@ Required when `channels` includes `voice`:
 
 - `customer.facts`
 - `frontend.chat.customerDisplayName`
+- `frontend.chat.standardText`
 - `frontend.voice.customerDisplayName`
 - `coaching.summaryGuidance`
 
@@ -61,9 +62,16 @@ These fields are optional for the schema, but they are strongly recommended beca
 - `frontend.chat.guideTitle`: Title for the right-side guidance panel.
 - `frontend.chat.customerDisplayName`: Name shown in chat metadata. If omitted, the platform can fall back to customer name fields.
 - `frontend.chat.hotkeyProfile`: Use `"core"` or `"rx"`.
+- `frontend.chat.standardText`: Optional scenario-specific Standard Text set. When present, the chat experience should use these hotkeys instead of the global profile hotkeys.
 - `frontend.chat.guideSections`: Guidance sections shown to the learner.
 - `frontend.chat.initialTranscript`: Initial chat turn list. The first customer turn should currently use `role: "assistant"` because of the current frontend rendering logic.
 - `simulation.stateModel.chatStepProgression`: Keyword-based rules used by the current chat simulator to decide whether the learner has progressed.
+
+`frontend.chat.standardText` entries should use this shape:
+
+- `hotkey`: The Standard Text hotkey, such as `"DE6"`.
+- `template`: The exact text associated with the hotkey.
+- `notes`: Optional authoring or personalization notes for that Standard Text item.
 
 ## Voice-Only Fields
 
@@ -84,6 +92,8 @@ These fields are optional for the schema, but they are strongly recommended beca
 - `channels` must contain only `"chat"` and/or `"voice"`.
 - Every string array should contain non-empty strings only.
 - `frontend.chat.hotkeyProfile` must be `"core"` or `"rx"`.
+- `frontend.chat.standardText[*].hotkey` must be non-empty.
+- `frontend.chat.standardText[*].template` must be non-empty.
 - `frontend.chat.initialTranscript[*].content` must be non-empty.
 - `frontend.chat.initialTranscript[*].role` should currently be `"assistant"` for customer opening turns.
 - `simulation.stateModel.chatStepProgression[*].match.all` and `.match.any` currently support only:
@@ -97,6 +107,7 @@ These fields are optional for the schema, but they are strongly recommended beca
 - Keep guide bullets coachable and behavior-specific. Good bullets describe what the learner should say or do.
 - Keep chat progression rules broad enough to recognize natural phrasing. Include synonyms in `phrases`.
 - Use `customer.facts` for details authors need to track, but avoid adding extra top-level fields outside the contract.
+- Prefer `frontend.chat.standardText` for scenario-specific hotkeys instead of expanding the global Lambda hotkey library for every scenario.
 - If a scenario is chat-only, still include `customer.opening.voice` as a placeholder only if your workflow requires it. Otherwise, omit the unused channel block.
 - For voice scenarios, write guide copy that supports a spoken flow rather than copy-paste text behavior.
 - For coaching behaviors, prefer concise, binary-observable phrasing such as `"Asked a clarifying question"` over vague phrasing like `"Demonstrated excellence"`.
