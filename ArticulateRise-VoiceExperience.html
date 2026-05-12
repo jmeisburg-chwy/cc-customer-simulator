@@ -346,7 +346,11 @@ NOTES
     }
 
     audio {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .guide-shell {
@@ -757,7 +761,7 @@ NOTES
 
             <div class="status-row">
               <span class="status-label">Status:</span>
-              <span id="status">Loading scenarios…</span>
+              <span id="status">Loading scenarios...</span>
             </div>
             <div class="hint" id="hint">If the scenario dropdown does not load, confirm the API URL and CORS settings.</div>
 
@@ -780,7 +784,7 @@ NOTES
                 <div id="coachContainer" class="panel" hidden>
                   <div class="coach-chip">
                     <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    <h3 style="margin:0;">Here's what I noticed…</h3>
+                    <h3 style="margin:0;">Here's what I noticed...</h3>
                   </div>
 
                   <div id="coach" class="coach-box coach-render" aria-live="polite" style="margin-top:8px;">
@@ -838,6 +842,7 @@ NOTES
 
     const EVALUATION_RETRY_INITIAL_DELAY_MS = 2000;
     const EVALUATION_RETRY_MAX_DELAY_MS = 15000;
+    const EVALUATION_MAX_ATTEMPTS = 3;
     const FALLBACK_VOICE_GUIDE_TOP_NOTE = "Begin by speaking your Chewy greeting.";
     const FALLBACK_VOICE_GUIDE_SECTIONS = [
       {
@@ -1230,7 +1235,7 @@ NOTES
     }
 
     async function loadScenarios() {
-      setStatus("Loading scenarios…");
+      setStatus("Loading scenarios...");
       hintEl.textContent = "If the scenario does not load, confirm the API URL, scenario id, and CORS settings.";
       startBtn.disabled = true;
 
@@ -1369,7 +1374,7 @@ NOTES
       for (const ex of examples) {
         html += `<div class="card"><div class="inner-card">`;
         html += `<h3 style="margin:0 0 10px 0;">Quote</h3>`;
-        html += `<p class="summary">“${escHtml((ex.quote || "").trim())}”</p>`;
+        html += `<p class="summary">"${escHtml((ex.quote || "").trim())}"</p>`;
         html += `<h3 style="margin:14px 0 10px 0;">Conversation insight</h3>`;
         html += `<p class="summary">${escHtml(ex.conversation_insight)}</p>`;
         html += `<h3 style="margin:14px 0 10px 0;">Example</h3>`;
@@ -1585,12 +1590,42 @@ NOTES
       channel.onmessage = (e) => {
         let msg; try { msg = JSON.parse(e.data); } catch { return; }
         const type = String(msg.type || "");
+        console.debug("Realtime event", msg);
+
+        if (type === "error" || msg.error) {
+          const err = msg.error || msg;
+          const message = String(err.message || err.type || "Realtime error");
+          console.error("Realtime API event error", msg);
+          setStatus(("Realtime error: " + message).slice(0, 160));
+          return;
+        }
+
+        if (type === "input_audio_buffer.speech_started") {
+          setStatus("Listening...");
+          return;
+        }
+
+        if (type === "input_audio_buffer.speech_stopped") {
+          setStatus("Thinking...");
+          return;
+        }
+
+        if (type === "response.created") {
+          setStatus("Customer responding...");
+          return;
+        }
+
+        if (type === "response.done" || type === "response.completed") {
+          flushCustomer();
+          setStatus("Connected. Start talking.");
+          return;
+        }
 
         if (type === "response.output_text.delta" && typeof msg.delta === "string") {
           customerBuffer += msg.delta;
           return;
         }
-        if (type === "response.output_text.done" || type === "response.completed") {
+        if (type === "response.output_text.done") {
           flushCustomer();
           return;
         }
@@ -1654,10 +1689,10 @@ NOTES
         attempt += 1;
 
         if (attempt === 1) {
-          setStatus("Generating coaching…");
-          coachEl.textContent = "Generating coaching…";
+          setStatus("Generating coaching...");
+          coachEl.textContent = "Generating coaching...";
         } else {
-          setStatus(`Generating coaching… retrying (${attempt})`);
+          setStatus(`Generating coaching... retrying (${attempt})`);
           coachEl.innerHTML = `
             <div class="summary">
               We're still generating your coaching feedback. A temporary hiccup occurred, so the simulator is retrying automatically.
@@ -1690,7 +1725,7 @@ NOTES
           return { type: "legacy", payload: legacy, raw: evalResp };
         }
 
-        if (!isRetryableEvalFailure(evalResp)) {
+        if (!isRetryableEvalFailure(evalResp) || attempt >= EVALUATION_MAX_ATTEMPTS) {
           return { type: "raw", payload: evalResp, raw: evalResp };
         }
 
@@ -1727,11 +1762,11 @@ NOTES
       startBtn.disabled = true;
       endBtn.disabled = true;
 
-      setStatus("Requesting microphone permission…");
+      setStatus("Requesting microphone permission...");
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       startUserSTT();
 
-      setStatus("Contacting session server…");
+      setStatus("Contacting session server...");
       const ephem = await fetchJSON(SESSION_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1743,7 +1778,9 @@ NOTES
         })
       }, 20000);
 
-      if (!ephem?.client_secret?.value) {
+      const realtimeClientSecret = ephem?.client_secret?.value || ephem?.value || "";
+
+      if (!realtimeClientSecret) {
         console.error("Session create failed:", ephem);
         const msg = ephem?.message || ephem?.body || (ephem?.status ? ("HTTP " + ephem.status) : "") || "Error creating session";
         setStatus(("Error creating session: " + msg).slice(0, 140));
@@ -1752,33 +1789,34 @@ NOTES
         return;
       }
 
-      setStatus("Creating WebRTC connection…");
+      setStatus("Creating WebRTC connection...");
       pc = new RTCPeerConnection();
+
+      assistantEl.autoplay = true;
+      assistantEl.playsInline = true;
+      assistantEl.muted = false;
+      assistantEl.volume = 1;
+
+      pc.onconnectionstatechange = () => {
+        const state = pc ? pc.connectionState : "";
+        if (state === "failed" || state === "disconnected" || state === "closed") {
+          setStatus(`Connection ${state}.`);
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        const state = pc ? pc.iceConnectionState : "";
+        if (state === "failed" || state === "disconnected") {
+          setStatus(`Audio connection ${state}.`);
+        }
+      };
 
       dcSend = pc.createDataChannel("oai-events");
       attachRealtimeMessageHandlers(dcSend);
 
       dcSend.onopen = () => {
         try {
-          const cfg = {
-            type: "session.update",
-            session: {
-              audio: {
-                input: {
-                  turn_detection: {
-                    type: "server_vad",
-                    threshold: 0.5,
-                    prefix_padding_ms: 300,
-                    silence_duration_ms: 1200,
-                    idle_timeout_ms: 20000,
-                    interrupt_response: true,
-                    create_response: true
-                  }
-                }
-              }
-            }
-          };
-          dcSend.send(JSON.stringify(cfg));
+          console.debug("Realtime data channel open");
         } catch { }
       };
 
@@ -1787,9 +1825,14 @@ NOTES
         attachRealtimeMessageHandlers(dcRecv);
       };
 
-      const remote = new MediaStream();
-      assistantEl.srcObject = remote;
-      pc.ontrack = (e) => remote.addTrack(e.track);
+      pc.ontrack = (e) => {
+        const stream = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
+        assistantEl.srcObject = stream;
+        assistantEl.play().catch((err) => {
+          console.warn("Assistant audio playback blocked", err);
+          setStatus("Connected, but audio playback was blocked. Tap Start again or unmute the page.");
+        });
+      };
       micStream.getTracks().forEach(t => pc.addTrack(t, micStream));
 
       try {
@@ -1801,15 +1844,14 @@ NOTES
         animateVU();
       } catch { }
 
-      setStatus("Negotiating with OpenAI Realtime…");
+      setStatus("Negotiating with OpenAI Realtime...");
       const offer = await pc.createOffer({ offerToReceiveAudio: true });
       await pc.setLocalDescription(offer);
 
-      const MODEL = "gpt-4o-mini-realtime-preview-2024-12-17";
-      const r = await fetch(`https://api.openai.com/v1/realtime?model=${encodeURIComponent(MODEL)}`, {
+      const r = await fetch("https://api.openai.com/v1/realtime/calls", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${ephem.client_secret.value}`,
+          "Authorization": `Bearer ${realtimeClientSecret}`,
           "Content-Type": "application/sdp",
           "Accept": "application/sdp"
         },
@@ -1817,7 +1859,9 @@ NOTES
       });
 
       if (!r.ok) {
-        setStatus("Realtime API error " + r.status);
+        const errorText = await r.text().catch(() => "");
+        console.error("Realtime API error", r.status, errorText);
+        setStatus(("Realtime API error " + r.status + ": " + errorText).slice(0, 140));
         startBtn.disabled = false;
         endBtn.disabled = true;
         return;
@@ -1825,6 +1869,7 @@ NOTES
 
       const answer = await r.text();
       await pc.setRemoteDescription({ type: "answer", sdp: answer });
+      assistantEl.play().catch(() => { });
       setStatus("Connected. Start talking.");
       endBtn.disabled = false;
     }
@@ -1838,7 +1883,7 @@ NOTES
       try { micStream && micStream.getTracks().forEach(t => t.stop()); } catch { }
       if (rafId) cancelAnimationFrame(rafId);
 
-      setStatus("Generating coaching…");
+      setStatus("Generating coaching...");
       endBtn.disabled = true;
       startBtn.disabled = true;
 
@@ -1846,7 +1891,7 @@ NOTES
 
       coachContainer.hidden = false;
       coachContainer.classList.remove("reveal");
-      coachEl.textContent = "Generating coaching…";
+      coachEl.textContent = "Generating coaching...";
       requestAnimationFrame(() => coachContainer.classList.add("reveal"));
 
       const fullTranscript = joinTurnsToTranscriptText(transcriptTurns) || "Agent: (no transcript)\nCustomer: (no transcript)";
