@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat Coaching Report Preview</title>
+  <style>
+    :root {
+      --chewy-blue: #1C49C2;
+      --card-border: #E6ECF5;
+      --card: #F3F6FA;
+      --text-muted: #5f6b7a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #eef3fb;
+      color: #111827;
+      font-family: "Gordita", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .preview {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #d6dfef;
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .report-kicker {
+      color: var(--chewy-blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.08;
+      margin: 0;
+    }
+
+    .subhead {
+      margin: 8px 0 0;
+      color: #4b5563;
+      font-size: 15px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--chewy-blue);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--chewy-blue);
+    }
+
+    .metric-card span {
+      display: block;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .metric-card strong {
+      display: block;
+      margin-top: 4px;
+      color: #fff;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .target-note {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .report-summary {
+      margin-top: 20px;
+      border-top: 2px solid #111827;
+      padding-top: 14px;
+    }
+
+    h2 {
+      font-size: 26px;
+      line-height: 1.2;
+      margin: 0 0 8px;
+    }
+
+    .behavior-section-header {
+      margin-top: 22px;
+    }
+
+    .behavior-section-helper {
+      margin: -2px 0 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .summary-coach-card {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-top: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .coach-summary-avatar {
+      width: 104px;
+      height: 126px;
+      border-radius: 16px;
+      background: #f5f8ff;
+      overflow: hidden;
+    }
+
+    .coach-summary-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+    }
+
+    .coach-summary-notes {
+      display: grid;
+      gap: 10px;
+    }
+
+    .coach-summary-notes p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .coaching-note,
+    .behavior-detail-note {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .coaching-note strong,
+    .behavior-detail-note strong {
+      display: block;
+      color: var(--chewy-blue);
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .behavior-card {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .behavior-inner {
+      background: #fff;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    details.behavior-row {
+      border-top: 1px solid var(--card-border);
+    }
+
+    details.behavior-row:first-child { border-top: 0; }
+
+    summary.behavior-summary-row {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    summary.behavior-summary-row::-webkit-details-marker { display: none; }
+
+    .behavior-row-copy strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .behavior-row-copy span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .behavior-rating-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .rating-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .rating-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--rating-color);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+    }
+
+    .behavior-score-ring {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: conic-gradient(var(--ring-color) calc(var(--score) * 1%), #edf1f7 0);
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .behavior-score-ring::before {
+      content: attr(data-label);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      color: #374151;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .view-details {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: #49617d;
+      font-size: 12px;
+      font-weight: 800;
+      background: #fff;
+    }
+
+    .behavior-caret {
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid var(--chewy-blue);
+      border-bottom: 2px solid var(--chewy-blue);
+      transform: rotate(45deg);
+      margin-top: -3px;
+    }
+
+    details[open] .behavior-caret { transform: rotate(45deg); }
+
+    .behavior-detail-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 0 16px;
+    }
+
+    .report-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .report-btn {
+      min-width: 132px;
+      min-height: 44px;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1px solid var(--chewy-blue);
+    }
+
+    .report-btn-secondary {
+      background: #fff;
+      color: var(--chewy-blue);
+    }
+  </style>
+</head>
+<body>
+  <main class="preview">
+    <section class="result-hero">
+      <div class="report-kicker">Coaching Report</div>
+      <h1>You're getting there...</h1>
+      <p class="subhead">You did not pass this attempt yet. Review the coaching moments, then try again.</p>
+      <div class="metric-grid">
+        <div class="metric-card"><span>Overall score</span><strong>58.3%</strong></div>
+        <div class="metric-card"><span>Target</span><strong>80%</strong></div>
+        <div class="metric-card"><span>Coaching moments</span><strong>4</strong></div>
+      </div>
+      <div class="target-note">Target: 80% or higher</div>
+    </section>
+
+    <section class="report-summary">
+      <h2>Summary</h2>
+      <div class="summary-coach-card">
+        <div class="coach-summary-avatar"><img src="assets/Coach_Chewy_Circle_large.png" alt="" /></div>
+        <div class="coach-summary-notes">
+          <p>You opened with a courteous greeting and used a professional tone. The next opportunity is to recap the customer's concern, acknowledge the urgency, and set a specific next step before moving forward.</p>
+          <div class="coaching-note"><strong>DOING WELL</strong>You started warmly and kept the conversation professional.</div>
+          <div class="coaching-note"><strong>OPPORTUNITY</strong>Make the issue recap and next-step expectation more specific before taking action.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="behavior-section-header">
+      <h2>Customer Care Behaviors</h2>
+      <p class="behavior-section-helper">Open each behavior to review what went well and where to improve.</p>
+    </div>
+    <section class="behavior-card">
+      <div class="behavior-inner">
+        <details class="behavior-row" open>
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Issue Understanding</strong><span>This was a coaching moment to revisit before trying again.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#d94b63"></span>Missed Opportunity</span><span class="behavior-score-ring" style="--score:0; --ring-color:#d94b63;" data-label="0"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>You greeted the customer and moved into support quickly.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>Confirm the customer's full issue, urgency, and context before moving to next steps. Restate what you heard so the customer knows you understood the problem.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Emotional Acknowledgement</strong><span>The customer shared concern, and the response could have named it more directly.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#d94b63"></span>Missed Opportunity</span><span class="behavior-score-ring" style="--score:0; --ring-color:#d94b63;" data-label="0"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>You stayed calm and professional.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>Acknowledge the customer's worry or frustration before solving. A short, specific line can make the response feel more caring.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Problem Ownership</strong><span>This was a chance to clearly own the next step for the customer.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#d94b63"></span>Missed Opportunity</span><span class="behavior-score-ring" style="--score:0; --ring-color:#d94b63;" data-label="0"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>You were willing to help.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>Use ownership language that tells the customer what you will do next and why. Avoid making the customer feel they have to manage the process.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Personalization</strong><span>The response could have connected more directly to the customer's specific situation.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#e6aa2e"></span>To Some Extent</span><span class="behavior-score-ring" style="--score:50; --ring-color:#e6aa2e;" data-label="50"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>You kept the conversation relevant to the customer.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>Use the customer or pet details already shared, and explain the recommendation in terms of that specific situation.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Expectation Setting</strong><span>The customer needed a clearer picture of what would happen next.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#d94b63"></span>Missed Opportunity</span><span class="behavior-score-ring" style="--score:0; --ring-color:#d94b63;" data-label="0"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>You tried to move toward a resolution.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>State what happens next, who is responsible, and any timing the customer should expect.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Pet Engagement</strong><span>The scenario did not create a clear pet-specific rapport moment.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#c8b6e2"></span>No Opportunity</span><span class="behavior-score-ring" style="--score:0; --ring-color:#c8b6e2;" data-label="N/A"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>This behavior was not applicable in this scenario.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>No action needed for this attempt because the customer did not provide a relevant pet engagement moment.</div>
+          </div>
+        </details>
+
+        <details class="behavior-row">
+          <summary class="behavior-summary-row">
+            <span class="behavior-row-copy"><strong>Communication Style</strong><span>Some of this behavior came through, with room to make it more specific.</span></span>
+            <span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:#e6aa2e"></span>To Some Extent</span><span class="behavior-score-ring" style="--score:50; --ring-color:#e6aa2e;" data-label="50"></span><span class="view-details">View details <span class="behavior-caret"></span></span></span>
+          </summary>
+          <div class="behavior-detail-body">
+            <div class="behavior-detail-note"><strong>DOING WELL</strong>Your tone was courteous and professional.</div>
+            <div class="behavior-detail-note"><strong>OPPORTUNITY</strong>Use clearer timeline language so the customer knows exactly what happens next.</div>
+          </div>
+        </details>
+      </div>
+    </section>
+    <div class="report-actions">
+      <button type="button" class="report-btn report-btn-secondary" data-report-action="try-again">Try Again</button>
+    </div>
+  </main>
+</body>
+</html>

@@ -14,6 +14,54 @@ const REALTIME_CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_s
 
 const DEFAULT_SCENARIO_ID = "pharmacy_order_cancellation";
 
+const OFFICIAL_BEHAVIOR_DEFINITIONS = [
+  {
+    behavior_name: "issue_understanding",
+    label: "Issue Understanding",
+    definition:
+      "Actively identifies and confirms the customer's full issue, including underlying needs, urgency, and context, before moving to resolution."
+  },
+  {
+    behavior_name: "emotional_acknowledgement",
+    label: "Emotional Acknowledgement",
+    definition:
+      "Acknowledges emotion such as frustration, worry, excitement, grief, gratitude, or personal strain in a timely, genuine, and situation-specific way."
+  },
+  {
+    behavior_name: "problem_ownership",
+    label: "Problem Ownership",
+    definition:
+      "Takes clear responsibility for resolving the customer's issue, committing to actions, and narrating progress."
+  },
+  {
+    behavior_name: "personalization",
+    label: "Personalization",
+    definition:
+      "Tailors the approach to the customer's specific situation by offering relevant options, explaining trade-offs, and making recommendations aligned to the customer's needs."
+  },
+  {
+    behavior_name: "expectation_setting",
+    label: "Expectation Setting",
+    definition:
+      "Clearly communicates what happens next, including timelines, who is responsible, and what the customer should expect."
+  },
+  {
+    behavior_name: "pet_engagement",
+    label: "Pet Engagement",
+    definition:
+      "Builds rapport by engaging authentically with the customer's pet by asking about them, using their name, showing genuine interest, and showing concern for their wellbeing."
+  },
+  {
+    behavior_name: "communication_style",
+    label: "Communication Style",
+    definition:
+      "Communicates clearly, confidently, and professionally, using organized responses, decisive language, and a tone that is warm without being casual and professional without sounding robotic."
+  }
+];
+
+const OFFICIAL_BEHAVIOR_NAMES = OFFICIAL_BEHAVIOR_DEFINITIONS.map((item) => item.behavior_name);
+const OFFICIAL_RATINGS = ["To a Great Extent", "To Some Extent", "Missed Opportunity", "No Opportunity"];
+
 const REFLECTION_LINE =
   "Take a moment to review the feedback and think about how you’ll apply it on your next customer call.";
 
@@ -1948,6 +1996,109 @@ function getScenarioChecklistMap(s) {
   }, {});
 }
 
+function normalizeBehaviorName(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  const snake = raw
+    .replace(/([a-z])([A-Z])/g, "$1_$2")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+
+  const aliases = {
+    acknowledgement: "emotional_acknowledgement",
+    emotional_acknowledgment: "emotional_acknowledgement",
+    empathy: "emotional_acknowledgement",
+    ownership: "problem_ownership",
+    issue_resolution: "issue_understanding",
+    understanding: "issue_understanding",
+    expectations: "expectation_setting",
+    pet_rapport: "pet_engagement",
+    communication: "communication_style"
+  };
+
+  return aliases[snake] || snake;
+}
+
+function getScenarioBehaviorGuidanceMap(s) {
+  const inputs = [
+    s?.coaching?.behaviorRubric,
+    s?.coaching?.behavior_rubric,
+    s?.coaching?.behaviorGuidance,
+    s?.coaching?.behavior_guidance,
+    s?.behaviorRubric,
+    s?.behavior_rubric
+  ];
+
+  const map = {};
+
+  for (const input of inputs) {
+    if (Array.isArray(input)) {
+      input.forEach((item) => {
+        if (!item || typeof item !== "object") return;
+        const name = normalizeBehaviorName(item.behavior_name || item.behaviorName || item.behavior || item.name);
+        if (OFFICIAL_BEHAVIOR_NAMES.includes(name)) map[name] = item;
+      });
+    } else if (input && typeof input === "object") {
+      Object.entries(input).forEach(([key, item]) => {
+        const name = normalizeBehaviorName(key);
+        if (OFFICIAL_BEHAVIOR_NAMES.includes(name)) {
+          map[name] = item && typeof item === "object" ? item : { guidance: String(item || "") };
+        }
+      });
+    }
+  }
+
+  return map;
+}
+
+function buildBehaviorRubricBlock(s) {
+  const scenarioGuidance = getScenarioBehaviorGuidanceMap(s);
+
+  return OFFICIAL_BEHAVIOR_DEFINITIONS
+    .map((behavior) => {
+      const guidance = scenarioGuidance[behavior.behavior_name] || {};
+      const hasExplicitOpportunity =
+        guidance.has_opportunity !== undefined ||
+        guidance.hasOpportunity !== undefined ||
+        guidance.opportunity === false;
+      const hasOpportunity =
+        guidance.has_opportunity !== undefined
+          ? !!guidance.has_opportunity
+          : guidance.hasOpportunity !== undefined
+            ? !!guidance.hasOpportunity
+            : guidance.opportunity !== false;
+
+      const lines = [
+        `${behavior.behavior_name} (${behavior.label})`,
+        `Definition: ${behavior.definition}`,
+        `Scenario opportunity: ${
+          hasExplicitOpportunity
+            ? hasOpportunity
+              ? "Yes"
+              : "No - return No Opportunity unless the scenario guidance is changed."
+            : "Not predefined - use the official rubric and transcript to decide whether a reasonable opportunity occurred."
+        }`
+      ];
+
+      const opportunity = guidance.opportunity_guidance || guidance.opportunityGuidance || guidance.opportunity || "";
+      const some = guidance.to_some_extent_guidance || guidance.toSomeExtentGuidance || guidance.to_some_extent || "";
+      const great = guidance.to_great_extent_guidance || guidance.toGreatExtentGuidance || guidance.to_great_extent || "";
+      const missed = guidance.missed_opportunity_guidance || guidance.missedOpportunityGuidance || guidance.missed_opportunity || "";
+      const notes = guidance.evaluator_notes || guidance.evaluatorNotes || guidance.notes || guidance.guidance || "";
+
+      if (opportunity && typeof opportunity === "string") lines.push(`Opportunity guidance: ${opportunity}`);
+      if (some && typeof some === "string") lines.push(`To Some Extent in this scenario: ${some}`);
+      if (great && typeof great === "string") lines.push(`To a Great Extent in this scenario: ${great}`);
+      if (missed && typeof missed === "string") lines.push(`Missed Opportunity in this scenario: ${missed}`);
+      if (notes && typeof notes === "string") lines.push(`Additional scenario notes: ${notes}`);
+
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
 function buildRealtimeInstructions(s) {
   const between = getScenarioConversationContext(s);
   const f = getScenarioFacts(s);
@@ -2130,6 +2281,9 @@ ${getScenarioAbout(s)}
 
 Observable behaviors to check (scenario specific):
 ${checklistBlock || "(No checklist provided for this scenario)"}
+
+Official behavior rubric and scenario-specific rating guidance:
+${buildBehaviorRubricBlock(s)}
 
 Who this conversation is between:
 - Participant role: ${between.participantRole || "Chewy agent"}
@@ -2333,6 +2487,239 @@ function normalizeEvaluationChecklist(input) {
       };
     })
     .filter(Boolean);
+}
+
+function normalizeRating(value) {
+  const raw = String(value || "").trim();
+  const compact = raw.toLowerCase().replace(/[^a-z]/g, "");
+  const aliases = {
+    toagreatextent: "To a Great Extent",
+    great: "To a Great Extent",
+    strong: "To a Great Extent",
+    tage: "To a Great Extent",
+    tosomeextent: "To Some Extent",
+    some: "To Some Extent",
+    developing: "To Some Extent",
+    tse: "To Some Extent",
+    missedopportunity: "Missed Opportunity",
+    missed: "Missed Opportunity",
+    opportunitymissed: "Missed Opportunity",
+    mo: "Missed Opportunity",
+    noopportunity: "No Opportunity",
+    notapplicable: "No Opportunity",
+    na: "No Opportunity"
+  };
+
+  return aliases[compact] || (OFFICIAL_RATINGS.includes(raw) ? raw : "No Opportunity");
+}
+
+function ratingToScore(rating) {
+  const normalized = normalizeRating(rating);
+  if (normalized === "To a Great Extent") return { score_numerator: 100, score_denominator: 1 };
+  if (normalized === "To Some Extent") return { score_numerator: 50, score_denominator: 1 };
+  if (normalized === "Missed Opportunity") return { score_numerator: 0, score_denominator: 1 };
+  return { score_numerator: 0, score_denominator: 0 };
+}
+
+function roundScore(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 10) / 10;
+}
+
+function formatTranscriptForEvaluation(transcript) {
+  return String(transcript || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => `[Turn ${index + 1}] ${line}`)
+    .join("\n");
+}
+
+function extractTranscriptExcerpt(transcript, turnId) {
+  const numeric = Number(turnId);
+  if (!Number.isFinite(numeric)) return "";
+  const lines = String(transcript || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const index = numeric > 0 ? numeric - 1 : numeric;
+  const line = lines[index] || "";
+  return line ? `[Turn ${index + 1}] ${line}` : "";
+}
+
+function normalizeBehaviorResults(input, transcript = "") {
+  const source = Array.isArray(input)
+    ? input
+    : input && typeof input === "object"
+      ? Object.entries(input).map(([behavior_name, value]) => ({ behavior_name, ...(value || {}) }))
+      : [];
+
+  const byName = {};
+  source.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const name = normalizeBehaviorName(item.behavior_name || item.behaviorName || item.behavior || item.name);
+    if (!OFFICIAL_BEHAVIOR_NAMES.includes(name)) return;
+    byName[name] = item;
+  });
+
+  const behaviors = OFFICIAL_BEHAVIOR_DEFINITIONS.map((definition) => {
+    const raw = byName[definition.behavior_name] || {};
+    const rating = normalizeRating(raw.rating);
+    const score = ratingToScore(rating);
+    const rawTurnId =
+      raw.evidence_turn_id !== undefined
+        ? raw.evidence_turn_id
+        : raw.turn_id !== undefined
+          ? raw.turn_id
+          : raw.turnId;
+    const evidenceTurnId = rating === "No Opportunity" ? null : (rawTurnId === undefined || rawTurnId === "" ? null : rawTurnId);
+    const transcriptExcerpt =
+      String(raw.transcript_excerpt || raw.transcriptExcerpt || "").trim() ||
+      extractTranscriptExcerpt(transcript, evidenceTurnId);
+
+    return {
+      behavior_name: definition.behavior_name,
+      behavior_label: definition.label,
+      rating,
+      ...score,
+      evidence_turn_id: evidenceTurnId,
+      evidence_time_offset_seconds: Number.isFinite(Number(raw.evidence_time_offset_seconds || raw.evidenceTimeOffsetSeconds))
+        ? Number(raw.evidence_time_offset_seconds || raw.evidenceTimeOffsetSeconds)
+        : null,
+      evidence_text: String(raw.evidence_text || raw.evidenceText || raw.transcriptEvidence || "").trim(),
+      transcript_excerpt: transcriptExcerpt,
+      behavior_summary:
+        rating === "No Opportunity"
+          ? String(raw.behavior_summary || raw.behaviorSummary || "").trim()
+          : String(raw.behavior_summary || raw.behaviorSummary || raw.explanation || "").trim()
+    };
+  });
+
+  const total_score_numerator = behaviors.reduce((sum, item) => sum + item.score_numerator, 0);
+  const total_score_denominator = behaviors.reduce((sum, item) => sum + item.score_denominator, 0);
+  const final_score = total_score_denominator ? roundScore(total_score_numerator / total_score_denominator) : 0;
+  const focus_behavior = selectFocusBehavior(behaviors);
+  const strongest_behaviors = behaviors
+    .filter((item) => item.rating === "To a Great Extent")
+    .map((item) => item.behavior_name);
+
+  return {
+    behaviors,
+    behavior_results: behaviors,
+    total_score_numerator,
+    total_score_denominator,
+    final_score,
+    focus_behavior,
+    strongest_behaviors
+  };
+}
+
+function selectFocusBehavior(behaviors) {
+  const rank = {
+    "Missed Opportunity": 0,
+    "To Some Extent": 1,
+    "To a Great Extent": 2
+  };
+
+  return (Array.isArray(behaviors) ? behaviors : [])
+    .filter((item) => item && item.score_denominator > 0)
+    .sort((a, b) => {
+      const aRank = rank[a.rating] ?? 99;
+      const bRank = rank[b.rating] ?? 99;
+      if (aRank !== bRank) return aRank - bRank;
+      if (a.score_numerator !== b.score_numerator) return a.score_numerator - b.score_numerator;
+      return OFFICIAL_BEHAVIOR_NAMES.indexOf(a.behavior_name) - OFFICIAL_BEHAVIOR_NAMES.indexOf(b.behavior_name);
+    })[0] || null;
+}
+
+function splitLearnerName(name) {
+  const value = String(name || "").trim().replace(/\s+/g, " ");
+  if (!value) return { learner_first_name: "", learner_last_name: "" };
+  const parts = value.split(" ");
+  return {
+    learner_first_name: parts[0] || "",
+    learner_last_name: parts.length > 1 ? parts.slice(1).join(" ") : ""
+  };
+}
+
+function normalizeLearnerFields(body) {
+  const learnerName = String(body.learner_name || body.learnerName || body.agentName || "").trim();
+  const learnerId = String(body.learner_id || body.learnerId || body.agentId || "").trim();
+  const split = splitLearnerName(learnerName);
+
+  return {
+    learner_id: learnerId,
+    learner_employee_id: String(body.learner_employee_id || body.learnerEmployeeId || learnerId).trim(),
+    learner_username: String(body.learner_username || body.learnerUsername || body.employee_username || body.employeeUsername || "").trim(),
+    learner_email: String(body.learner_email || body.learnerEmail || body.employee_email || body.employeeEmail || "").trim(),
+    learner_name: learnerName,
+    learner_first_name: String(body.learner_first_name || body.learnerFirstName || split.learner_first_name).trim(),
+    learner_last_name: String(body.learner_last_name || body.learnerLastName || split.learner_last_name).trim(),
+    learner_identity_source: String(body.learner_identity_source || body.learnerIdentitySource || "scorm_2004").trim()
+  };
+}
+
+function buildCoachingDynamoItems(body) {
+  const sessionId = String(body.simulation_session_id || body.simulationSessionId || body.sessionId || "").trim();
+  const completedAt = String(body.completed_at || body.completedAt || body.endedAt || new Date().toISOString()).trim();
+  const createdAt = String(body.created_at || body.createdAt || completedAt).trim();
+  const scenarioId = String(body.scenario_id || body.scenarioId || "").trim();
+  const scenarioName = String(body.scenario_name || body.scenarioName || body.scenarioLabel || "").trim();
+  const courseId = String(body.course_id || body.courseId || "").trim();
+  const transcript = body.transcript ? String(body.transcript).replace(/\\n/g, "\n") : "";
+  const normalized = normalizeBehaviorResults(body.behavior_results || body.behaviorResults || body.behaviors || [], transcript);
+  const learner = normalizeLearnerFields(body);
+  const { trainingDate, trainingTime } = formatDateParts(completedAt);
+
+  const base = {
+    simulation_session_id: sessionId,
+    ...learner,
+    course_id: courseId,
+    scenario_id: scenarioId,
+    scenario_name: scenarioName,
+    scenarioLabel: scenarioName,
+    channel: String(body.channel || "").trim(),
+    created_at: createdAt,
+    completed_at: completedAt,
+    trainingDate,
+    trainingTime
+  };
+
+  const sessionItem = {
+    ...base,
+    record_type: "simulation_session",
+    agentId: learner.learner_id,
+    agentName: learner.learner_name || "Unknown Agent",
+    endedAt_sessionId: `${completedAt}#${sessionId}#session`,
+    completionStatus: String(body.completionStatus || body.completion_status || "Completed").trim() || "Completed",
+    coachSummaryText: String(body.coachSummaryText || body.coach_summary_text || body.summary || "").trim(),
+    transcript,
+    final_score: normalized.final_score,
+    total_score_numerator: normalized.total_score_numerator,
+    total_score_denominator: normalized.total_score_denominator,
+    focus_behavior: normalized.focus_behavior ? normalized.focus_behavior.behavior_name : "",
+    strongest_behaviors: normalized.strongest_behaviors
+  };
+
+  const behaviorItems = normalized.behaviors.map((behavior) => ({
+    ...base,
+    record_type: "behavior_result",
+    agentId: learner.learner_id,
+    agentName: learner.learner_name || "Unknown Agent",
+    endedAt_sessionId: `${completedAt}#${sessionId}#behavior#${behavior.behavior_name}`,
+    behavior_name: behavior.behavior_name,
+    behavior_label: behavior.behavior_label,
+    rating: behavior.rating,
+    score_numerator: behavior.score_numerator,
+    score_denominator: behavior.score_denominator,
+    evidence_turn_id: behavior.evidence_turn_id,
+    evidence_time_offset_seconds: behavior.evidence_time_offset_seconds,
+    evidence_text: behavior.evidence_text,
+    transcript_excerpt: behavior.transcript_excerpt,
+    behavior_summary: behavior.behavior_summary
+  }));
+
+  return [sessionItem, ...behaviorItems];
 }
 
 function buildObservedBehaviorsText(observedBehaviors) {
@@ -2702,23 +3089,29 @@ exports.handler = async (event) => {
 
       const scenario = getScenario(body.scenario);
       const evalContext = buildEvalContext(scenario);
+      const numberedTranscript = formatTranscriptForEvaluation(transcript);
 
       const system = `
 You are Coach Chewy, a call quality evaluator for Chewy training.
 
 CRITICAL RULES
 - Evaluate ONLY what you (the agent) said in the transcript.
-- If the transcript does not clearly show a behavior, mark it as not observed.
+- Evaluate all 7 official Customer Care behaviors every time.
+- Use scenario-specific guidance to decide whether a behavior had an opportunity and what earns To Some Extent versus To a Great Extent.
+- If scenario guidance says a behavior has no opportunity, return No Opportunity for that behavior unless the scenario guidance explicitly says otherwise.
+- If a behavior had an opportunity but the transcript does not clearly show a genuine, situation-specific attempt, return Missed Opportunity.
 - Do not invent evidence or quotes.
-- You are marking observable behaviors only.
+- Do not reward or punish the learner based on whether they offered a refund, replacement, or concession.
+- Reserve To a Great Extent for visibly strong, positive coaching examples.
+- To Some Extent requires a real, situation-specific attempt. Generic process language alone is not enough.
 
 OUTPUT RULES
-- No numeric scoring.
 - No code fences.
 - Summary must be one short paragraph, as concise as possible.
 - Write the summary in second person, speaking directly to the learner using "you" and "your". Do not refer to "the agent" or "the learner" in the summary.
-- Keep transcriptEvidence to a short phrase or sentence from the agent when available.
-- Keep each explanation to one short sentence.
+- Cite one evidence_turn_id for every behavior except No Opportunity.
+- Keep evidence_text to a short phrase or sentence from the agent when available.
+- Keep each behavior_summary to 1 or 2 short sentences that explain why the rating fits.
 `.trim();
 
       const userPrompt = `
@@ -2727,54 +3120,52 @@ ${evalContext}
 Return evaluation as a STRUCTURED JSON object.
 
 You must output:
-1) quality_checklist: the 5 quality behavior categories. Each includes the scenario behaviors.
-Each behavior must have:
-- behavior (string)
-- observed (boolean)
-- transcriptEvidence (string)
-- explanation (string)
+1) behavior_results: exactly 7 behavior results, one for each official behavior.
+Each behavior result must have:
+- behavior_name (one of ${OFFICIAL_BEHAVIOR_NAMES.join(", ")})
+- rating (one of ${OFFICIAL_RATINGS.join(", ")})
+- evidence_turn_id (number or null for No Opportunity)
+- evidence_text (short agent phrase or sentence when available)
+- transcript_excerpt (one short excerpt, preferably the cited turn)
+- behavior_summary (short diagnostic coaching summary; may be empty for No Opportunity)
 
 2) summary: one short paragraph written in second person that tells the learner what they did well and what to work on next. Use "you" and "your." Keep it concise.
 
+3) what_went_well: one short learner-friendly sentence.
+
+4) what_to_strengthen_next: one short learner-friendly sentence.
+
 TRANSCRIPT:
-${transcript}
+${numberedTranscript}
 `.trim();
 
       const schema = {
         type: "object",
         additionalProperties: false,
         properties: {
-          quality_checklist: {
+          behavior_results: {
             type: "array",
-            minItems: 5,
-            maxItems: 5,
+            minItems: 7,
+            maxItems: 7,
             items: {
               type: "object",
               additionalProperties: false,
               properties: {
-                category: { type: "string" },
-                behaviors: {
-                  type: "array",
-                  minItems: 1,
-                  items: {
-                    type: "object",
-                    additionalProperties: false,
-                    properties: {
-                      behavior: { type: "string" },
-                      observed: { type: "boolean" },
-                      transcriptEvidence: { type: "string" },
-                      explanation: { type: "string" }
-                    },
-                    required: ["behavior", "observed", "transcriptEvidence", "explanation"]
-                  }
-                }
+                behavior_name: { type: "string", enum: OFFICIAL_BEHAVIOR_NAMES },
+                rating: { type: "string", enum: OFFICIAL_RATINGS },
+                evidence_turn_id: { type: ["integer", "null"] },
+                evidence_text: { type: "string" },
+                transcript_excerpt: { type: "string" },
+                behavior_summary: { type: "string" }
               },
-              required: ["category", "behaviors"]
+              required: ["behavior_name", "rating", "evidence_turn_id", "evidence_text", "transcript_excerpt", "behavior_summary"]
             }
           },
-          summary: { type: "string", minLength: 1 }
+          summary: { type: "string", minLength: 1 },
+          what_went_well: { type: "string" },
+          what_to_strengthen_next: { type: "string" }
         },
-        required: ["quality_checklist", "summary"]
+        required: ["behavior_results", "summary", "what_went_well", "what_to_strengthen_next"]
       };
 
       let evaluationObj = null;
@@ -2839,8 +3230,14 @@ ${transcript}
         });
       }
 
-      evaluationObj.quality_checklist = normalizeEvaluationChecklist(evaluationObj.quality_checklist);
-
+      const normalizedBehaviorResults = normalizeBehaviorResults(evaluationObj.behavior_results, transcript);
+      evaluationObj.behavior_results = normalizedBehaviorResults.behaviors;
+      evaluationObj.behaviors = normalizedBehaviorResults.behaviors;
+      evaluationObj.total_score_numerator = normalizedBehaviorResults.total_score_numerator;
+      evaluationObj.total_score_denominator = normalizedBehaviorResults.total_score_denominator;
+      evaluationObj.final_score = normalizedBehaviorResults.final_score;
+      evaluationObj.focus_behavior = normalizedBehaviorResults.focus_behavior;
+      evaluationObj.strongest_behaviors = normalizedBehaviorResults.strongest_behaviors;
       evaluationObj.summary = appendReflection(
         ensureCoachingSummary(evaluationObj.summary, scenario.title)
       );
@@ -2885,6 +3282,32 @@ ${transcript}
 
       const { trainingDate, trainingTime } = formatDateParts(endedAt);
       const endedAt_sessionId = `${endedAt}#${sessionId}`;
+      const hasBehaviorResults =
+        Array.isArray(body.behavior_results) ||
+        Array.isArray(body.behaviorResults) ||
+        Array.isArray(body.behaviors);
+
+      if (hasBehaviorResults) {
+        const items = buildCoachingDynamoItems({
+          ...body,
+          learner_id: body.learner_id || body.learnerId || agentId,
+          learner_name: body.learner_name || body.learnerName || agentName,
+          completed_at: body.completed_at || body.completedAt || endedAt,
+          created_at: body.created_at || body.createdAt || endedAt
+        });
+
+        try {
+          for (const item of items) {
+            await dynamoPutItem({ tableName: COACHING_TABLE, item });
+          }
+          return json({ ok: true, item: items[0], items });
+        } catch (e) {
+          return json(
+            { error: true, message: "Failed to save coaching", detail: String(e?.message || e) },
+            500
+          );
+        }
+      }
 
       const areasOfOpportunity = normalizeAreasOfOpportunity(
         body.areasOfOpportunity || body.areas_of_opportunity
@@ -2952,4 +3375,11 @@ ${transcript}
       })
     };
   }
+};
+
+exports.__test = {
+  ratingToScore,
+  normalizeBehaviorResults,
+  buildCoachingDynamoItems,
+  selectFocusBehavior
 };

@@ -155,6 +155,14 @@ Validation rules:
   - `category`
   - `behaviors`
 - checklist behaviors must be observable, coachable actions.
+- `coaching.behaviorRubric` must include all seven official Customer Care behavior keys:
+  `issue_understanding`, `emotional_acknowledgement`, `problem_ownership`, `personalization`, `expectation_setting`, `pet_engagement`, and `communication_style`.
+- Each `coaching.behaviorRubric` behavior must include:
+  - `has_opportunity`
+  - `opportunity_guidance`
+  - `to_some_extent_guidance`
+  - `to_great_extent_guidance`
+  - `missed_opportunity_guidance`
 
 Interview order:
 1. Ask whether the scenario is for chat, voice, or both.
@@ -172,14 +180,14 @@ Interview order:
    ask hotkey profile, whether scenario-specific Standard Text hotkeys are needed, which hotkeys should be included, guide title, customer display name, initial transcript opening, guide sections, progression checkpoints, and fallback replies.
 12. If voice is included:
    ask guide top note, customer display name, guide sections, and end note.
-13. Ask for coaching summary guidance, checklist categories with behaviors, and evaluation criteria.
+13. Ask for coaching summary guidance, official behavior-rubric guidance for all seven behaviors, checklist categories with behaviors, and evaluation criteria.
 
 Defaulting guidance:
 - If the user does not provide custom prompting rules, use concise defaults that keep the customer realistic, avoid redundant questions, and keep chat replies brief.
 - If the user does not provide a separate `customerDisplayName`, use the customer persona name.
 - If the user does not provide a separate chat opening for `initialTranscript`, reuse `customer.opening.chat`.
 - If the user struggles with chat progression, help create 3 to 6 steps with keyword phrase groups that reflect the expected learner flow.
-- If the user struggles with checklist writing, rewrite behaviors into observable actions.
+- If the user struggles with behavior-rubric writing, define what creates an opportunity, what partial credit looks like, what full credit looks like, and what a missed opportunity looks like for each official behavior in the scenario.
 - If chat is included, ask whether the author wants scenario-specific Standard Text hotkeys.
 - When the author wants Standard Text support, search the knowledge base hotkey library and include only the selected hotkeys in `frontend.chat.standardText`.
 - If the author describes the intent but not the exact hotkey, use the knowledge base to suggest likely matches and confirm the selection before final output.

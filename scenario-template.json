@@ -113,6 +113,57 @@
     }
   },
   "coaching": {
+    "behaviorRubric": {
+      "issue_understanding": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Describe what creates a reasonable opportunity for the learner to demonstrate issue understanding in this scenario.",
+        "to_some_extent_guidance": "Describe partial or adequate performance for this scenario.",
+        "to_great_extent_guidance": "Describe visibly strong, positive coaching-example performance for this scenario.",
+        "missed_opportunity_guidance": "Describe what it looks like when the learner had a clear opportunity but did not demonstrate the behavior."
+      },
+      "emotional_acknowledgement": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Describe the customer emotion or cue that creates the opportunity.",
+        "to_some_extent_guidance": "Describe a real but partial, delayed, generic, or lower-impact acknowledgement.",
+        "to_great_extent_guidance": "Describe a timely, genuine, situation-specific acknowledgement.",
+        "missed_opportunity_guidance": "Describe what it looks like to move past the emotion without acknowledging it."
+      },
+      "problem_ownership": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Describe what the learner needs to own or drive in this scenario.",
+        "to_some_extent_guidance": "Describe partial ownership, such as taking action but not narrating progress or closing the loop.",
+        "to_great_extent_guidance": "Describe clear ownership, action, progress narration, and follow-through.",
+        "missed_opportunity_guidance": "Describe passive language, avoidable deflection, or burden-shifting."
+      },
+      "personalization": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Describe the customer context, options, constraints, or preferences that create a personalization opportunity.",
+        "to_some_extent_guidance": "Describe some tailoring with room for more specific options, trade-offs, or recommendations.",
+        "to_great_extent_guidance": "Describe relevant options or recommendations clearly tailored to this customer and pet.",
+        "missed_opportunity_guidance": "Describe a one-size-fits-all response when customer context should have shaped the support."
+      },
+      "expectation_setting": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Describe what next steps, timeline, ownership, or outcome the learner should set expectations around.",
+        "to_some_extent_guidance": "Describe partial expectation setting, such as giving next steps but missing timeline, owner, or outcome.",
+        "to_great_extent_guidance": "Describe complete, explicit expectation setting with timeline, ownership, and customer-visible outcome.",
+        "missed_opportunity_guidance": "Describe leaving the customer uncertain about what happens next."
+      },
+      "pet_engagement": {
+        "has_opportunity": false,
+        "opportunity_guidance": "Set to true only when the scenario creates a natural, relevant pet rapport moment.",
+        "to_some_extent_guidance": "Describe brief or surface-level pet engagement.",
+        "to_great_extent_guidance": "Describe authentic, specific pet engagement that builds rapport without delaying resolution.",
+        "missed_opportunity_guidance": "Describe ignoring a natural pet-related opening."
+      },
+      "communication_style": {
+        "has_opportunity": true,
+        "opportunity_guidance": "Communication style applies when there is any real learner/customer interaction.",
+        "to_some_extent_guidance": "Describe clear enough communication with some room for improvement.",
+        "to_great_extent_guidance": "Describe clear, confident, organized, warm, and professional communication.",
+        "missed_opportunity_guidance": "Describe communication that is unclear, disorganized, overly casual, robotic, or confidence-undermining."
+      }
+    },
     "qualityChecklist": [
       {
         "category": "Category name",

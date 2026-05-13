@@ -17,8 +17,8 @@ The backend is the source of truth for scenarios, customer behavior, evaluation,
 - Both frontends load scenario-specific display/config data from `GET /scenario`.
 - Chat uses `POST /chat-turn` for turn-by-turn customer replies.
 - Voice uses `POST /session` to create an OpenAI Realtime session.
-- Both experiences use `POST /evaluate` to generate coaching.
-- Both can save coaching records through `POST /coaching`.
+- Both experiences use `POST /evaluate` to generate behavior-framework coaching.
+- Both can save coaching records through `POST /coaching`; the backend stores one session summary record plus one behavior result record for each official behavior when behavior results are present.
 
 Scenario selection is controlled in each frontend by:
 - `SCENARIO_OVERRIDE` if set
@@ -60,7 +60,7 @@ Practical notes:
 
 - `GET /scenario` is what the frontends use to load scenario-specific guidance and configuration.
 - `GET /scenarios` is useful for listing available scenarios and voice discovery flows.
-- `POST /coaching` writes to DynamoDB using `COACHING_TABLE`.
+- `POST /coaching` writes to DynamoDB using `COACHING_TABLE`. Behavior-framework payloads write `record_type = simulation_session` and `record_type = behavior_result` items to support Snowflake/Omni-style reporting.
 - Make sure CORS is configured for the domain or LMS origin that will host the HTML files.
 
 ## Frontend setup
@@ -127,6 +127,27 @@ High-level flow:
 3. Learner completes chat or voice interaction.
 4. Backend evaluates the transcript with `POST /evaluate`.
 5. Frontend optionally saves the coaching record with `POST /coaching`.
+
+## Behavior framework scoring
+
+The evaluator returns all seven default Customer Care behaviors:
+
+- `issue_understanding`
+- `emotional_acknowledgement`
+- `problem_ownership`
+- `personalization`
+- `expectation_setting`
+- `pet_engagement`
+- `communication_style`
+
+Ratings use the official behavior framework scale:
+
+- `To a Great Extent` = `100/1`
+- `To Some Extent` = `50/1`
+- `Missed Opportunity` = `0/1`
+- `No Opportunity` = `0/0`
+
+`No Opportunity` is applicability, not a penalty. It is excluded from the final score denominator. Scenario authors should define `coaching.behaviorRubric` so each scenario controls what creates an opportunity and what partial versus full credit looks like.
 
 ## Notes / important behaviors
 

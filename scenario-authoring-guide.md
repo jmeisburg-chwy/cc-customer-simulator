@@ -82,6 +82,7 @@ These fields are optional for the schema, but they are strongly recommended beca
 
 ## Coaching Fields
 
+- `coaching.behaviorRubric`: Required for behavior-framework scoring. Include all seven official behavior keys. For each behavior, define whether the scenario creates an opportunity and what earns `To Some Extent`, `To a Great Extent`, and `Missed Opportunity`.
 - `coaching.qualityChecklist`: Categories and behaviors the evaluator should assess.
 - `coaching.summaryGuidance`: Optional guidance for how the summary should be written.
 
@@ -99,7 +100,11 @@ These fields are optional for the schema, but they are strongly recommended beca
 - `simulation.stateModel.chatStepProgression[*].match.all` and `.match.any` currently support only:
   - `op: "contains_any"`
   - `phrases: string[]`
-- `coaching.qualityChecklist[*].behaviors` should be observable behaviors, not broad themes.
+- `coaching.behaviorRubric` must include exactly these keys: `issue_understanding`, `emotional_acknowledgement`, `problem_ownership`, `personalization`, `expectation_setting`, `pet_engagement`, and `communication_style`.
+- `coaching.behaviorRubric[*].has_opportunity` should be `false` only when the scenario intentionally does not give the learner a fair chance to demonstrate that behavior. A behavior with `has_opportunity: false` should be rated `No Opportunity` and excluded from the score denominator.
+- `coaching.behaviorRubric[*].to_some_extent_guidance` should describe real but partial, delayed, generic, inconsistent, or lower-impact performance.
+- `coaching.behaviorRubric[*].to_great_extent_guidance` should describe visibly strong performance that would be useful as a positive coaching example.
+- `coaching.qualityChecklist[*].behaviors` can still support legacy display and prompt clarity, but behavior-framework scoring should rely on `coaching.behaviorRubric`.
 
 ## Practical Authoring Tips
 
@@ -110,4 +115,5 @@ These fields are optional for the schema, but they are strongly recommended beca
 - Prefer `frontend.chat.standardText` for scenario-specific hotkeys instead of expanding the global Lambda hotkey library for every scenario.
 - If a scenario is chat-only, still include `customer.opening.voice` as a placeholder only if your workflow requires it. Otherwise, omit the unused channel block.
 - For voice scenarios, write guide copy that supports a spoken flow rather than copy-paste text behavior.
-- For coaching behaviors, prefer concise, binary-observable phrasing such as `"Asked a clarifying question"` over vague phrasing like `"Demonstrated excellence"`.
+- For behavior scoring, do not write only binary-observable checks. Define the scenario-specific difference between `To Some Extent` and `To a Great Extent` so the evaluator does not invent the bar.
+- Use `No Opportunity` intentionally. If a behavior is not relevant to the scenario, mark `has_opportunity: false` rather than making the learner earn or lose points for it.

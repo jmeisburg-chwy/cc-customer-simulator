@@ -627,6 +627,429 @@ NOTES
       color: #b42318;
     }
 
+    .score-snapshot {
+      display: grid;
+      grid-template-columns: 126px 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    .score-ring {
+      width: 126px;
+      min-height: 132px;
+      border-radius: 18px;
+      border: 1px solid var(--chewy-blue);
+      background: var(--chewy-blue);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .score-ring * {
+      color: #fff;
+    }
+
+    .score-ring strong {
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .score-ring span {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .result-hero {
+      margin-top: 8px;
+    }
+
+    .report-kicker {
+      color: var(--chewy-blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .result-hero h2 {
+      font-size: 42px;
+      line-height: 1.08;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .result-hero p {
+      margin: 8px 0 0 0;
+      color: #4b5563;
+      font-size: 15px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--chewy-blue);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--chewy-blue);
+    }
+
+    .metric-card span {
+      display: block;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .metric-card strong {
+      display: block;
+      margin-top: 4px;
+      color: #fff;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .target-note {
+      margin-top: 8px;
+      color: #5f6b7a;
+      font-size: 13px;
+    }
+
+    .report-summary {
+      margin-top: 20px;
+      border-top: 2px solid #111827;
+      padding-top: 14px;
+    }
+
+    .report-summary h2,
+    .behavior-section-title {
+      font-size: 26px;
+      line-height: 1.2;
+      margin: 0 0 8px 0;
+    }
+
+    .behavior-section-header {
+      margin-top: 22px;
+    }
+
+    .behavior-section-helper {
+      margin: -2px 0 12px 0;
+      color: #5f6b7a;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .report-summary p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.55;
+      color: #1f2937;
+    }
+
+    .summary-coach-card {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-top: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .coaching-notes {
+      display: grid;
+      gap: 10px;
+    }
+
+    .coach-summary {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 16px;
+      align-items: start;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .coach-summary-avatar {
+      width: 96px;
+      height: 116px;
+      border-radius: 16px;
+      background: #f5f8ff;
+      overflow: hidden;
+      align-self: stretch;
+    }
+
+    .coach-summary-avatar img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+    }
+
+    .coach-summary-notes {
+      display: grid;
+      gap: 10px;
+    }
+
+    .coaching-note {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .coaching-note strong,
+    .priority-focus strong {
+      display: block;
+      color: #0a3a8f;
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .priority-focus {
+      margin-top: 12px;
+      border: 1px solid #cfe0ff;
+      border-radius: 12px;
+      padding: 12px;
+      background: #f4f8ff;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .rating-pill {
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .rating-strong { background: #e7f6eb; color: #1d6f36; }
+    .rating-developing { background: #fff6d9; color: #8a5a00; }
+    .rating-missed { background: #fde8e6; color: #a22a1d; }
+    .rating-na { background: #eef1f6; color: #5f6b7a; }
+
+    .rating-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .rating-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--rating-color);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+    }
+
+    .behavior-points {
+      color: #5f6b7a;
+      font-weight: 700;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+
+    .behavior-detail-list {
+      margin-top: 0;
+    }
+
+    .coach-render details.behavior-row {
+      display: block;
+      padding: 0;
+      border-top: 1px solid var(--card-border);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .coach-render details.behavior-row:first-child {
+      border-top: none;
+    }
+
+    .coach-render details.behavior-row summary.behavior-summary-row {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .coach-render details.behavior-row summary.behavior-summary-row:hover .view-details,
+    .coach-render details.behavior-row summary.behavior-summary-row:focus-visible .view-details {
+      border-color: var(--chewy-blue);
+      color: var(--chewy-blue);
+    }
+
+    .coach-render details.behavior-row summary.behavior-summary-row::-webkit-details-marker {
+      display: none;
+    }
+
+    .behavior-rating-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .behavior-row-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .behavior-row-copy strong {
+      display: block;
+      color: #111827;
+      font-size: 17px;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .behavior-row-copy span {
+      display: block;
+      color: #5f6b7a;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .behavior-score-ring {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: conic-gradient(var(--ring-color) calc(var(--score) * 1%), #edf1f7 0);
+      display: inline-grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .behavior-score-ring::before {
+      content: attr(data-label);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      color: #374151;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .view-details {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: #49617d;
+      font-size: 12px;
+      font-weight: 800;
+      background: #fff;
+    }
+
+    .behavior-caret {
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid var(--chewy-blue);
+      border-bottom: 2px solid var(--chewy-blue);
+      transform: rotate(45deg);
+      transition: transform .18s ease;
+      margin-top: -3px;
+    }
+
+    details[open] .behavior-caret {
+      transform: rotate(45deg);
+    }
+
+    .behavior-detail-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 0 16px 0;
+    }
+
+    .behavior-detail-note {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .behavior-detail-note strong {
+      display: block;
+      color: var(--chewy-blue);
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .report-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .report-btn {
+      min-width: 132px;
+      min-height: 44px;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1px solid var(--chewy-blue);
+      transition: background-color .18s ease, border-color .18s ease, opacity .18s ease;
+    }
+
+    .report-btn-secondary {
+      background: #fff;
+      color: var(--chewy-blue);
+    }
+
+    .report-btn-secondary:hover,
+    .report-btn-secondary:focus-visible {
+      background: #f4f8ff;
+    }
+
+    .report-btn:disabled {
+      cursor: default;
+      opacity: .65;
+    }
+
     .debug-box {
       margin-top: 12px;
       padding: 12px;
@@ -782,11 +1205,6 @@ NOTES
                 </div>
 
                 <div id="coachContainer" class="panel" hidden>
-                  <div class="coach-chip">
-                    <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
-                    <h3 style="margin:0;">Here's what I noticed...</h3>
-                  </div>
-
                   <div id="coach" class="coach-box coach-render" aria-live="polite" style="margin-top:8px;">
                     After the call ends, your coaching will appear here.
                   </div>
@@ -899,18 +1317,11 @@ NOTES
       }
     ];
     const FALLBACK_VOICE_END_NOTE = "After you finish supporting the customer, click End below to review your feedback.";
+    const COACH_CHEWY_IMAGE_SRC = "https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle_large.png";
 
-    function safeParse(json) { try { return JSON.parse(json); } catch (_) { return null; } }
     function getVoiceStorageKey(scenarioId = getScenarioId()) {
       const normalizedScenarioId = String(scenarioId || "").trim() || "default";
       return `ccs_coaching:${normalizedScenarioId}:voice`;
-    }
-    function loadPersisted() {
-      const raw = STORE.getItem(getVoiceStorageKey());
-      return raw ? safeParse(raw) : null;
-    }
-    function savePersisted(record) {
-      try { STORE.setItem(getVoiceStorageKey(), JSON.stringify(record)); } catch (_) { }
     }
     function clearPersisted() { try { STORE.removeItem(getVoiceStorageKey()); } catch (_) { } }
 
@@ -995,7 +1406,7 @@ NOTES
                   <p>${escHtml(section.body || "")}</p>
                   <div class="blue-card">
                     <div class="blue-card-avatar">
-                      <img src="https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle.png" alt="" />
+                      <img src="${COACH_CHEWY_IMAGE_SRC}" alt="" />
                     </div>
                     <div>
                       <ul>${bulletsHtml}</ul>
@@ -1063,7 +1474,10 @@ NOTES
       const p = new URLSearchParams(location.search);
       return {
         agentId: p.get("agentId") || "",
-        agentName: p.get("agentName") || ""
+        agentName: p.get("agentName") || "",
+        learnerEmployeeId: p.get("learnerEmployeeId") || p.get("employeeId") || "",
+        learnerUsername: p.get("learnerUsername") || p.get("employeeUsername") || "",
+        learnerEmail: p.get("learnerEmail") || p.get("employeeEmail") || ""
       };
     }
 
@@ -1089,7 +1503,6 @@ NOTES
           }
         }
       }
-
       return null;
     }
 
@@ -1105,6 +1518,14 @@ NOTES
       }
 
       return value.replace(/\s+/g, " ").trim();
+    }
+
+    function splitLearnerName(name) {
+      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+      return {
+        learner_first_name: parts[0] || "",
+        learner_last_name: parts.length > 1 ? parts.slice(1).join(" ") : ""
+      };
     }
 
     function readScormLearnerInfo() {
@@ -1157,7 +1578,14 @@ NOTES
 
       return {
         agentId: resolvedId || "unknown",
-        agentName: resolvedName || TEMP_FALLBACK_AGENT_NAME
+        agentName: resolvedName || TEMP_FALLBACK_AGENT_NAME,
+        learner_id: resolvedId || "unknown",
+        learner_employee_id: qp.learnerEmployeeId || resolvedId || "unknown",
+        learner_username: qp.learnerUsername,
+        learner_email: qp.learnerEmail,
+        learner_name: resolvedName || TEMP_FALLBACK_AGENT_NAME,
+        ...splitLearnerName(resolvedName || TEMP_FALLBACK_AGENT_NAME),
+        learner_identity_source: scormInfo.id || scormInfo.name ? "scorm_2004" : "query_or_local"
       };
     }
 
@@ -1276,19 +1704,173 @@ NOTES
     function normalizeEvaluation(obj) {
       if (!obj || typeof obj !== "object") return null;
 
+      if ((Array.isArray(obj.behavior_results) || Array.isArray(obj.behaviors)) && typeof obj.summary === "string") return obj;
+
       if (Array.isArray(obj.quality_checklist) && typeof obj.summary === "string") return obj;
 
       if (obj.coaching && typeof obj.coaching === "object") {
         const c = obj.coaching;
+        if ((Array.isArray(c.behavior_results) || Array.isArray(c.behaviors)) && typeof c.summary === "string") return c;
         if (Array.isArray(c.quality_checklist) && typeof c.summary === "string") return c;
       }
 
       if (obj.evaluation && typeof obj.evaluation === "object") {
         const e = obj.evaluation;
+        if ((Array.isArray(e.behavior_results) || Array.isArray(e.behaviors)) && typeof e.summary === "string") return e;
         if (Array.isArray(e.quality_checklist) && typeof e.summary === "string") return e;
       }
-
       return null;
+    }
+
+    const OFFICIAL_BEHAVIORS = [
+      { behavior_name: "issue_understanding", label: "Issue Understanding" },
+      { behavior_name: "emotional_acknowledgement", label: "Emotional Acknowledgement" },
+      { behavior_name: "problem_ownership", label: "Problem Ownership" },
+      { behavior_name: "personalization", label: "Personalization" },
+      { behavior_name: "expectation_setting", label: "Expectation Setting" },
+      { behavior_name: "pet_engagement", label: "Pet Engagement" },
+      { behavior_name: "communication_style", label: "Communication Style" }
+    ];
+
+    function normalizeBehaviorName(value) {
+      return String(value || "")
+        .replace(/([a-z])([A-Z])/g, "$1_$2")
+        .replace(/[^a-zA-Z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .toLowerCase();
+    }
+
+    function ratingScore(rating) {
+      if (rating === "To a Great Extent") return { score_numerator: 100, score_denominator: 1 };
+      if (rating === "To Some Extent") return { score_numerator: 50, score_denominator: 1 };
+      if (rating === "Missed Opportunity") return { score_numerator: 0, score_denominator: 1 };
+      return { score_numerator: 0, score_denominator: 0 };
+    }
+
+    function learnerRatingLabel(rating) {
+      if (rating === "To a Great Extent") return { text: "Strong", className: "rating-strong" };
+      if (rating === "To Some Extent") return { text: "Developing", className: "rating-developing" };
+      if (rating === "Missed Opportunity") return { text: "Opportunity missed", className: "rating-missed" };
+      return { text: "Not applicable", className: "rating-na" };
+    }
+
+    function ratingColor(rating) {
+      if (rating === "To a Great Extent") return "#44c776";
+      if (rating === "To Some Extent") return "#e6aa2e";
+      if (rating === "Missed Opportunity") return "#d94b63";
+      return "#c8b6e2";
+    }
+
+    function normalizeBehaviorResults(evaluation) {
+      const source = Array.isArray(evaluation?.behavior_results)
+        ? evaluation.behavior_results
+        : Array.isArray(evaluation?.behaviors)
+          ? evaluation.behaviors
+          : [];
+      const byName = {};
+      source.forEach((item) => {
+        const name = normalizeBehaviorName(item?.behavior_name || item?.behaviorName || item?.behavior);
+        if (name) byName[name] = item;
+      });
+
+      const behaviors = OFFICIAL_BEHAVIORS.map((official) => {
+        const raw = byName[official.behavior_name] || {};
+        const rating = String(raw.rating || "No Opportunity").trim();
+        const score = ratingScore(rating);
+        return {
+          behavior_name: official.behavior_name,
+          behavior_label: raw.behavior_label || raw.behaviorLabel || official.label,
+          rating,
+          ...score,
+          evidence_turn_id: raw.evidence_turn_id ?? raw.turn_id ?? null,
+          evidence_text: String(raw.evidence_text || raw.evidenceText || "").trim(),
+          transcript_excerpt: String(raw.transcript_excerpt || raw.transcriptExcerpt || "").trim(),
+          behavior_summary: String(raw.behavior_summary || raw.behaviorSummary || "").trim()
+        };
+      });
+
+      const total_score_numerator = behaviors.reduce((sum, item) => sum + item.score_numerator, 0);
+      const total_score_denominator = behaviors.reduce((sum, item) => sum + item.score_denominator, 0);
+      const final_score = total_score_denominator ? Math.round((total_score_numerator / total_score_denominator) * 10) / 10 : 0;
+      return { behaviors, total_score_numerator, total_score_denominator, final_score };
+    }
+
+    function selectFocusBehavior(behaviors) {
+      const rank = { "Missed Opportunity": 0, "To Some Extent": 1, "To a Great Extent": 2 };
+      return behaviors
+        .filter((item) => item.score_denominator > 0)
+        .sort((a, b) => (rank[a.rating] ?? 99) - (rank[b.rating] ?? 99))[0] || null;
+    }
+
+    function resolveFocusBehavior(focus, behaviors) {
+      if (focus && typeof focus === "object") {
+        const focusName = normalizeBehaviorName(focus.behavior_name || focus.behaviorName || focus.behavior);
+        return behaviors.find((behavior) => behavior.behavior_name === focusName) || focus;
+      }
+      const focusName = normalizeBehaviorName(focus);
+      return behaviors.find((behavior) => behavior.behavior_name === focusName) || selectFocusBehavior(behaviors);
+    }
+
+    function priorityFocusText(focus) {
+      if (!focus) return "Keep practicing the behavior that best matches the customer's need in the moment.";
+      if (focus.rating === "Missed Opportunity") {
+        return `Practice ${focus.behavior_label} first. This was the clearest opportunity to make the conversation feel more complete for the customer.`;
+      }
+      if (focus.rating === "To Some Extent") {
+        return `Keep building ${focus.behavior_label}. You showed part of the behavior, and the next step is making it more specific and consistent.`;
+      }
+      return `Keep reinforcing ${focus.behavior_label} with clear, specific language tied to the customer's situation.`;
+    }
+
+    function resultHeadline(score) {
+      if (score >= 80) return "Great job.";
+      if (score >= 60) return "Nice progress.";
+      return "You're getting there...";
+    }
+
+    function resultSubhead(score) {
+      if (score >= 80) return "You met the target. Review the coaching moments to keep the behavior consistent.";
+      return "You did not pass this attempt yet. Review the coaching moments, then try again.";
+    }
+
+    function countCoachingMoments(behaviors) {
+      return behaviors.filter((behavior) => behavior.score_denominator > 0 && behavior.score_numerator < 100).length;
+    }
+
+    function behaviorScorePercent(behavior) {
+      if (!behavior.score_denominator) return 0;
+      return Math.max(0, Math.min(100, behavior.score_numerator));
+    }
+
+    function behaviorRingColor(behavior) {
+      return ratingColor(behavior.rating);
+    }
+
+    function compactBehaviorSummary(behavior) {
+      if (behavior.rating === "No Opportunity") return "No clear opportunity appeared in this scenario.";
+      if (behavior.rating === "To a Great Extent") return behavior.behavior_summary || "Strong, specific behavior shown in the conversation.";
+      if (behavior.rating === "To Some Extent") return behavior.behavior_summary || "Some of this behavior came through, with room to make it more specific.";
+      return behavior.behavior_summary || "This was a coaching moment to revisit before trying again.";
+    }
+
+    function behaviorDoingWellText(behavior) {
+      if (behavior.rating === "Missed Opportunity") {
+        return "This behavior was not clearly demonstrated during the interaction.";
+      }
+      if (behavior.rating === "No Opportunity") {
+        return "The scenario did not present a clear moment to demonstrate this behavior.";
+      }
+      return behavior.behavior_summary || behavior.evidence_text || "The response showed signs of this behavior during the interaction.";
+    }
+
+    function behaviorOpportunityText(behavior) {
+      if (behavior.rating === "To a Great Extent") {
+        return "Keep using this behavior with the same level of specificity and customer focus.";
+      }
+      if (behavior.rating === "No Opportunity") {
+        return "No action needed for this attempt because the behavior was not applicable.";
+      }
+      return behavior.transcript_excerpt || behavior.evidence_text || behavior.behavior_summary || "Look for a moment to make this behavior more specific, timely, and connected to the customer's situation.";
     }
 
     function normalizeLegacyCoaching(obj) {
@@ -1316,6 +1898,66 @@ NOTES
     }
 
     function renderEvaluation(evaluation) {
+      if (Array.isArray(evaluation?.behavior_results) || Array.isArray(evaluation?.behaviors)) {
+        const normalized = normalizeBehaviorResults(evaluation);
+        const focus = resolveFocusBehavior(evaluation.focus_behavior, normalized.behaviors);
+        const targetScore = 80;
+        const coachingMoments = countCoachingMoments(normalized.behaviors);
+        const wentWell =
+          String(evaluation?.what_went_well || "").trim() ||
+          "You showed useful customer care behaviors that helped move the conversation forward.";
+        const strengthen =
+          String(evaluation?.what_to_strengthen_next || "").trim() ||
+          (focus ? `Keep practicing ${focus.behavior_label || focus.behavior_name.replaceAll("_", " ")} so your response feels specific to the customer's situation.` : "Keep practicing clear, specific responses that match the customer's situation.");
+        const summaryText =
+          String(evaluation?.summary || "").trim() ||
+          `${wentWell} ${strengthen}`;
+
+        let html = "";
+        html += `<section class="result-hero">`;
+        html += `<div class="report-kicker">Coaching Report</div>`;
+        html += `<h2>${escHtml(resultHeadline(normalized.final_score))}</h2>`;
+        html += `<p>${escHtml(resultSubhead(normalized.final_score))}</p>`;
+        html += `<div class="metric-grid">`;
+        html += `<div class="metric-card"><span>Overall score</span><strong>${escHtml(String(normalized.final_score))}%</strong></div>`;
+        html += `<div class="metric-card"><span>Target</span><strong>${targetScore}%</strong></div>`;
+        html += `<div class="metric-card"><span>Coaching moments</span><strong>${coachingMoments}</strong></div>`;
+        html += `</div>`;
+        html += `<div class="target-note">Target: ${targetScore}% or higher</div>`;
+        html += `</section>`;
+
+        html += `<section class="report-summary"><h2>Summary</h2>`;
+        html += `<div class="summary-coach-card"><div class="coach-summary-avatar"><img src="${COACH_CHEWY_IMAGE_SRC}" alt="" /></div><div class="coach-summary-notes">`;
+        html += `<p>${escHtml(summaryText)}</p>`;
+        html += `<div class="coaching-note"><strong>DOING WELL</strong>${escHtml(wentWell)}</div>`;
+        html += `<div class="coaching-note"><strong>OPPORTUNITY</strong>${escHtml(strengthen)}</div>`;
+        html += `</div></div></section>`;
+
+        html += `<div class="behavior-section-header"><h2 class="behavior-section-title">Customer Care Behaviors</h2>`;
+        html += `<p class="behavior-section-helper">Open each behavior to review what went well and where to improve.</p></div>`;
+        html += `<div class="card"><div class="inner-card"><div class="behavior-list behavior-detail-list">`;
+        for (const behavior of normalized.behaviors) {
+          const ringScore = behaviorScorePercent(behavior);
+          const ringLabel = behavior.score_denominator ? `${ringScore}` : "N/A";
+          html += `<details class="behavior-row">`;
+          html += `<summary class="behavior-summary-row">`;
+          html += `<span class="behavior-row-copy"><strong>${escHtml(behavior.behavior_label)}</strong><span>${escHtml(compactBehaviorSummary(behavior))}</span></span>`;
+          html += `<span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:${ratingColor(behavior.rating)}"></span>${escHtml(behavior.rating)}</span><span class="behavior-score-ring" style="--score:${ringScore}; --ring-color:${behaviorRingColor(behavior)};" data-label="${escHtml(ringLabel)}"></span><span class="view-details">View details <span class="behavior-caret" aria-hidden="true"></span></span></span>`;
+          html += `</summary>`;
+          html += `<div class="behavior-detail-body">`;
+          html += `<div class="behavior-detail-note"><strong>DOING WELL</strong>${escHtml(behaviorDoingWellText(behavior))}</div>`;
+          html += `<div class="behavior-detail-note"><strong>OPPORTUNITY</strong>${escHtml(behaviorOpportunityText(behavior))}</div>`;
+          html += `</div>`;
+          html += `</details>`;
+        }
+        html += `</div></div></div>`;
+        if (normalized.final_score < targetScore) {
+          html += `<div class="report-actions"><button type="button" class="report-btn report-btn-secondary" data-report-action="try-again">Try Again</button></div>`;
+        }
+
+        return html;
+      }
+
       const qc = Array.isArray(evaluation.quality_checklist) ? evaluation.quality_checklist : [];
       const summary = typeof evaluation.summary === "string" ? evaluation.summary.trim() : "";
 
@@ -1344,7 +1986,7 @@ NOTES
       }
 
       if (summary) {
-        html += `<h2>Overall summary</h2>`;
+        html += `<h2>Summary</h2>`;
         html += `<div class="card"><div class="inner-card"><p class="summary">${escHtml(summary)}</p></div></div>`;
       }
 
@@ -1391,35 +2033,6 @@ NOTES
         html += `<div class="debug-box"><strong>Debug</strong>\n${escHtml(JSON.stringify(debug, null, 2))}</div>`;
       }
       return html;
-    }
-
-    function persistCoachingScreen(record) {
-      savePersisted(record);
-    }
-
-    function showCoachingFromPersisted(record) {
-      showGuide();
-      collapseGuide();
-      coachContainer.hidden = false;
-      requestAnimationFrame(() => coachContainer.classList.add("reveal"));
-
-      if (record && typeof record.statusText === "string") setStatus(record.statusText);
-
-      if (record && record.coachHtml) {
-        coachEl.innerHTML = record.coachHtml;
-      } else {
-        coachEl.textContent = "After the call ends, your coaching will appear here.";
-      }
-    }
-
-    function tryRestoreCoachingScreen() {
-      const saved = loadPersisted();
-      if (!saved || saved.hasCoaching !== true || !saved.coachHtml) return false;
-
-      showCoachingFromPersisted(saved);
-      startBtn.disabled = false;
-      endBtn.disabled = true;
-      return true;
     }
 
     function startUserSTT() {
@@ -1541,6 +2154,45 @@ NOTES
 
     function buildReportingPayload(evaluation, transcriptText, scenarioId, scenarioLabel, endedAt, errorText = "") {
       const ident = getAgentIdentity();
+      const normalizedBehaviorResults = normalizeBehaviorResults(evaluation);
+
+      if (Array.isArray(evaluation?.behavior_results) || Array.isArray(evaluation?.behaviors)) {
+        return {
+          sessionId,
+          simulation_session_id: sessionId,
+          agentId: ident.agentId,
+          agentName: ident.agentName,
+          learner_id: ident.learner_id,
+          learner_employee_id: ident.learner_employee_id,
+          learner_username: ident.learner_username,
+          learner_email: ident.learner_email,
+          learner_name: ident.learner_name,
+          learner_first_name: ident.learner_first_name,
+          learner_last_name: ident.learner_last_name,
+          learner_identity_source: ident.learner_identity_source,
+          course_id: String(new URLSearchParams(location.search).get("courseId") || "").trim(),
+          scenarioId,
+          scenario_id: scenarioId,
+          scenarioLabel,
+          scenario_name: scenarioLabel,
+          channel: "voice",
+          startedAt,
+          endedAt,
+          completed_at: endedAt,
+          created_at: endedAt,
+          completionStatus: "Completed",
+          coachSummaryText: String(evaluation?.summary || "").trim(),
+          what_went_well: String(evaluation?.what_went_well || "").trim(),
+          what_to_strengthen_next: String(evaluation?.what_to_strengthen_next || "").trim(),
+          behavior_results: normalizedBehaviorResults.behaviors,
+          final_score: normalizedBehaviorResults.final_score,
+          total_score_numerator: normalizedBehaviorResults.total_score_numerator,
+          total_score_denominator: normalizedBehaviorResults.total_score_denominator,
+          transcript: String(transcriptText || "").replace(/\\n/g, "\n"),
+          errorText
+        };
+      }
+
       const buckets = buildBehaviorBucketsFromEvaluation(evaluation);
 
       const observedBehaviorsText = buildObservedBehaviorsText(buckets.observedBehaviors);
@@ -1906,17 +2558,6 @@ NOTES
       if (result.type === "evaluation") {
         const evaluation = result.payload;
         const rendered = renderEvaluation(evaluation);
-        coachEl.innerHTML = rendered;
-        setStatus("Coaching ready.");
-
-        persistCoachingScreen({
-          hasCoaching: true,
-          scenarioId,
-          scenarioLabel,
-          statusText: "Coaching ready.",
-          coachHtml: rendered,
-          savedAt: now()
-        });
 
         await saveCoachingRecord(
           buildReportingPayload(
@@ -1928,6 +2569,8 @@ NOTES
           )
         );
 
+        coachEl.innerHTML = rendered;
+        setStatus("Coaching ready.");
         transcriptTurns.length = 0;
         startBtn.disabled = false;
         coachContainer.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1939,15 +2582,6 @@ NOTES
         const rendered = renderLegacyCoaching(legacy);
         coachEl.innerHTML = rendered;
         setStatus("Coaching ready.");
-
-        persistCoachingScreen({
-          hasCoaching: true,
-          scenarioId,
-          scenarioLabel,
-          statusText: "Coaching ready.",
-          coachHtml: rendered,
-          savedAt: now()
-        });
 
         await saveCoachingRecord({
           sessionId,
@@ -1982,15 +2616,6 @@ NOTES
       coachEl.innerHTML = rendered;
       setStatus("Coaching failed.");
 
-      persistCoachingScreen({
-        hasCoaching: true,
-        scenarioId,
-        scenarioLabel,
-        statusText: "Coaching failed.",
-        coachHtml: rendered,
-        savedAt: now()
-      });
-
       await saveCoachingRecord({
         sessionId,
         agentId: getAgentIdentity().agentId,
@@ -2012,15 +2637,46 @@ NOTES
       coachContainer.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
+    function resetForNewAttempt() {
+      evaluationRetryCancelled = false;
+      transcriptTurns.length = 0;
+      sessionId = null;
+      startedAt = null;
+      try { STORE.removeItem(getVoiceStorageKey()); } catch (_) { }
+
+      coachContainer.hidden = true;
+      coachContainer.classList.remove("reveal");
+      coachEl.textContent = "After the call ends, your coaching will appear here.";
+      expandGuide();
+      showGuide();
+      setStatus("Ready for a new attempt.");
+      hintEl.textContent = "";
+      startBtn.disabled = false;
+      endBtn.disabled = true;
+      startBtn.focus();
+    }
+
+    function handleReportAction(action) {
+      if (action === "try-again") {
+        resetForNewAttempt();
+      }
+    }
+
     toggleGuideBtn.onclick = toggleGuide;
     startBtn.onclick = start;
     endBtn.onclick = endCall;
+    coachEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-report-action]");
+      if (!button) return;
+      event.preventDefault();
+      handleReportAction(button.dataset.reportAction);
+    });
 
     applyFallbackVoiceDisplayContent();
     renderVoiceInstructions(STATIC_VOICE_INSTRUCTIONS);
 
     loadScenarios().then(() => {
-      tryRestoreCoachingScreen();
+      clearPersisted();
     });
   </script>
 </body>
