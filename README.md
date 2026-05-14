@@ -18,7 +18,7 @@ The backend is the source of truth for scenarios, customer behavior, evaluation,
 - Chat uses `POST /chat-turn` for turn-by-turn customer replies.
 - Voice uses `POST /session` to create an OpenAI Realtime session.
 - Both experiences use `POST /evaluate` to generate behavior-framework coaching.
-- Both can save coaching records through `POST /coaching`; the backend stores one session summary record plus one behavior result record for each official behavior when behavior results are present.
+- Both can save coaching records through `POST /coaching`; behavior-framework payloads are stored as one manager-facing session record per learner attempt, with learner/session metadata, overall score fields, coaching summary fields, and flattened per-behavior dashboard columns.
 
 Scenario selection is controlled in each frontend by:
 - `SCENARIO_OVERRIDE` if set
@@ -60,7 +60,7 @@ Practical notes:
 
 - `GET /scenario` is what the frontends use to load scenario-specific guidance and configuration.
 - `GET /scenarios` is useful for listing available scenarios and voice discovery flows.
-- `POST /coaching` writes to DynamoDB using `COACHING_TABLE`. Behavior-framework payloads write `record_type = simulation_session` and `record_type = behavior_result` items to support Snowflake/Omni-style reporting.
+- `POST /coaching` writes to DynamoDB using `COACHING_TABLE`. Behavior-framework payloads write one item per completed learner attempt so the DynamoDB to S3 to Snowflake to OmniReach pipeline keeps one dashboard row per learner session.
 - Make sure CORS is configured for the domain or LMS origin that will host the HTML files.
 
 ## Frontend setup
@@ -148,6 +148,17 @@ Ratings use the official behavior framework scale:
 - `No Opportunity` = `0/0`
 
 `No Opportunity` is applicability, not a penalty. It is excluded from the final score denominator. Scenario authors should define `coaching.behaviorRubric` so each scenario controls what creates an opportunity and what partial versus full credit looks like.
+
+## Coaching reporting fields
+
+Behavior-framework coaching saves a lean DynamoDB row optimized for training-manager dashboards:
+
+- Learner/session fields: `learner_id`, `learner_name`, `learner_first_name`, `learner_last_name`, `simulation_session_id`, `scenario_id`, `scenario_name`, `channel`, `completed_at`, `trainingDate`, `trainingTime`, `completionStatus`.
+- DynamoDB technical key fields: `agentId`, `endedAt_sessionId`. These remain because the existing `RoleplayCoaching` table requires them as primary key attributes.
+- Overall coaching fields: `final_score`, `focus_behavior`, `coachSummaryText`, `what_went_well`, `what_to_strengthen_next`.
+- Per-behavior fields for each official behavior: `{behavior}_rating`, `{behavior}_score`, `{behavior}_summary`, `{behavior}_score_explanation`, `{behavior}_observed_criteria`, `{behavior}_missed_criteria`.
+
+The behavior-framework row intentionally omits redundant, empty, or internal fields such as `agentName`, `learner_employee_id`, `learner_email`, `learner_username`, `learner_identity_source`, `record_type`, `course_id`, nested `behavior_results`, and full `transcript`.
 
 ## Notes / important behaviors
 

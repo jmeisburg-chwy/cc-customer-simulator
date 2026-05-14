@@ -68,6 +68,8 @@ const REFLECTION_LINE =
 const REALTIME_MODEL = "gpt-realtime-2";
 const CHAT_MODEL = process.env.CHAT_MODEL || "gpt-5-mini";
 const EVAL_MODEL = process.env.EVAL_MODEL || "gpt-5.4-mini";
+const CHAT_TURN_TIMEOUT_MS = Number(process.env.CHAT_TURN_TIMEOUT_MS || 12000);
+const CHAT_TURN_RETRIES = Number(process.env.CHAT_TURN_RETRIES || 1);
 
 const GLOBAL_CHAT_HOTKEYS = {
   core: [
@@ -453,355 +455,595 @@ const SCENARIOS = {
 
 
   late_delivery_20_partial_refund: {
-    id: "late_delivery_20_partial_refund",
-    version: 1,
-    status: "active",
-    channels: ["chat", "voice"],
-    label: "Late Delivery, 20% partial refund",
-    title: "Late Delivery, 20% partial refund",
-    voice: "echo",
-    catalog: {
-      label: "Late Delivery, 20% partial refund",
-      title: "Late Delivery, 20% partial refund",
-      shortTitle: "Late Delivery 20%",
-      description:
-        "The customer is calling because tracking says the order should have arrived 2 days ago, but it has not been delivered yet.",
-      domain: "general_cx",
-      difficulty: "foundational",
-      tags: ["delivery", "delay", "partial_refund"]
+  "id": "late_delivery_20_partial_refund",
+  "version": 1,
+  "status": "published",
+  "channels": [
+    "chat",
+    "voice"
+  ],
+  "label": "Scenario 3: Late Delivery, 20% Partial Refund",
+  "title": "Late Delivery, 20% Partial Refund",
+  "voice": "alloy",
+  "catalog": {
+    "label": "Scenario 3: Late Delivery, 20% Partial Refund",
+    "title": "Late Delivery, 20% Partial Refund",
+    "shortTitle": "Late Delivery 20% Refund",
+    "description": "Practice supporting a customer whose order for Fluffy's cat litter was originally expected two days ago and is now scheduled to arrive tomorrow because severe weather near the fulfillment center delayed outbound deliveries.",
+    "domain": "general_cx",
+    "training_topic": "late delivery service recovery",
+    "estimated_duration_minutes": 6,
+    "search_description": "Late delivery caused by weather near the fulfillment center, address verification, customer objection handling, updated delivery expectations, and a required 20 percent partial refund.",
+    "tags": [
+      "late_delivery",
+      "estimated_delivery_date",
+      "partial_refund",
+      "weather_delay",
+      "service_recovery",
+      "address_verification",
+      "expectation_setting",
+      "problem_ownership"
+    ]
+  },
+  "roles": {
+    "learnerRole": "Chewy Customer Service Agent",
+    "customerRole": "Chewy Customer"
+  },
+  "owner": {
+    "name": "",
+    "team": "",
+    "email": ""
+  },
+  "source": {
+    "type": "scratch",
+    "anonymized": false,
+    "generalized": false
+  },
+  "customer": {
+    "persona": {
+      "name": "Mr. Munsen",
+      "tone": "Starts concerned and polite, becomes frustrated when the weather explanation does not match his local conditions, then softens when the agent validates the concern and takes ownership.",
+      "goal": "Understand why Fluffy's cat litter is late, confirm the order is still coming, and receive the appropriate resolution for the delay.",
+      "personality": [
+        "direct",
+        "frustrated",
+        "reasonable",
+        "cooperative when reassured"
+      ],
+      "pace": "moderate"
     },
-    roles: {
-      learnerRole: "customer service agent",
-      customerRole: "Mr. Munsen (customer)"
+    "opening": {
+      "chat": "According to my tracking information, Fluffy's cat litter was supposed to be here 2 days ago and I still haven't seen it. Can you check on it for me?",
+      "voice": "According to my tracking information, Fluffy's cat litter was supposed to be here 2 days ago and I still haven't seen it. Can you check on it for me?"
     },
-    customer: {
-      persona: {
-        name: "Mr. Munsen",
-        tone:
-          "Starts polite but concerned, then becomes mildly irritated when the delay is explained as weather that was not local. Softens when the agent stays calm and takes ownership.",
-        goal:
-          "Understand why the package is late, get reassurance about delivery, and receive a fair resolution for the delay.",
-        personality: ["polite", "concerned", "mildly irritated", "cooperative"],
-        pace: "normal"
-      },
-      opening: {
-        chat:
-          "Hi, this is Mr Munsen. According to my tracking information, my order was supposed to be here 2 days ago and I still haven’t seen it. Can you check on it for me?",
-        voice:
-          "Hi, this is Mr Munsen. According to my tracking information, my order was supposed to be here 2 days ago and I still haven’t seen it. Can you check on it for me?"
-      },
-      facts: {
-        customerName: "Mr. Munsen",
-        petName: "Fluffy",
-        issueSummary:
-          "Tracking shows the order should have arrived 2 days ago, but it still has not been delivered.",
-        medicationOrProduct: "cat litter",
-        address: "3948 Simpson Rd",
-        rootCauseBelief:
-          "Tracking shows the order was supposed to arrive 2 days ago, but it still has not been delivered.",
-        updatedDeliveryExpectation: "Delivery is expected tomorrow.",
-        resolutionContext:
-          "The learner should offer the required 20 percent partial refund and present both refund placement options."
-      },
-      behavior: {
-        shareOnlyIfAsked: ["address"],
-        allowedObjections: [
-          "Why is that my problem? There’s no weather where I live!",
-          "You should have shipped it from another location."
-        ],
-        closingLine:
-          "Alright, thank you. I’ll watch for it tomorrow, and I appreciate you helping with the refund.",
-        successSofteningRule:
-          "If the agent stays calm, explains the situation clearly, and takes ownership, become more cooperative."
-      }
+    "facts": {
+      "customerName": "Mr. Munsen",
+      "petName": "Fluffy",
+      "issueSummary": "Fluffy's cat litter was originally expected two days ago, and the updated tracking now shows it arriving tomorrow, which makes it three days past the original estimated delivery date.",
+      "medicationOrProduct": "Cat litter",
+      "address": "3948 Simpson Road",
+      "rootCauseBelief": "The customer believes the delay should not be his problem because there is no severe weather where he lives.",
+      "urgency": "The item is essential for Fluffy.",
+      "estimatedDeliveryDateMiss": "The order was originally expected two days ago and is now scheduled to arrive tomorrow, which makes it three days past the original estimated delivery date.",
+      "delayCause": "Severe weather near the fulfillment center slowed outbound deliveries.",
+      "updatedDeliveryExpectation": "The order is scheduled to arrive tomorrow by end of day.",
+      "requiredResolution": "Offer a 20 percent partial refund because the order is three days past the original estimated delivery date.",
+      "refundOptions": [
+        "Original payment method",
+        "Chewy account credit"
+      ],
+      "customerPreference": "Original payment method",
+      "refundTiming": "The refund should be reflected within 3 to 5 business days.",
+      "resolutionContext": "The learner should verify the shipping address, explain the weather-related fulfillment delay in simple language, validate the customer's objection, offer the required 20 percent partial refund, let the customer choose refund placement, process it to the original payment method, recap delivery and refund expectations, and offer additional help."
     },
-    simulation: {
-      prompting: {
-        sharedBehaviorRules: [
-          "Do not ask a question if the agent already answered it clearly.",
-          "Do not repeat or restate a resolved concern.",
-          "Ask only one follow-up question at a time.",
-          "Prefer the fewest follow-up questions needed.",
-          "Do not ask redundant questions just to continue the conversation.",
-          "If the agent explains clearly and shows empathy and ownership, respond naturally with appreciation, reassurance, or a brief confirmation."
-        ],
-        chatSpecificRules: [
-          "Reply like a real customer in live chat.",
-          "Keep responses concise, usually 1 to 3 short sentences."
-        ],
-        voiceSpecificRules: [
-          "Let the learner fully finish speaking before you respond.",
-          "Treat short pauses, filler words, and thinking moments as part of the learner’s turn."
-        ]
-      },
-      stateModel: {
-        trackCurrentStep: true,
-        stepAdvanceStrategy: "frontend_keyword_checks",
-        chatStepProgression: [
-          {
-            id: 0,
-            match: {
-              all: [
-                {
-                  op: "contains_any",
-                  phrases: ["sorry", "understand", "frustrating", "delay", "help", "check"]
-                }
-              ],
-              any: [
-                {
-                  op: "contains_any",
-                  phrases: ["munsen", "fluffy", "cat litter", "order"]
-                }
-              ]
-            }
-          },
-          {
-            id: 1,
-            match: {
-              any: [
-                {
-                  op: "contains_any",
-                  phrases: ["address", "verify", "confirm", "shipping"]
-                },
-                {
-                  op: "contains_any",
-                  phrases: ["pulling up", "checking the order", "looking into it"]
-                }
-              ]
-            }
-          },
-          {
-            id: 2,
-            match: {
-              any: [
-                {
-                  op: "contains_any",
-                  phrases: ["weather", "fulfillment center", "delay", "carrier"]
-                },
-                {
-                  op: "contains_any",
-                  phrases: ["address is verified", "confirmed the address", "looks correct"]
-                }
-              ]
-            }
-          },
-          {
-            id: 3,
-            match: {
-              all: [
-                {
-                  op: "contains_any",
-                  phrases: ["20%", "20 percent", "partial refund", "credit"]
-                }
-              ],
-              any: [
-                {
-                  op: "contains_any",
-                  phrases: ["original payment method", "back to your card", "chewy account"]
-                }
-              ]
-            }
-          },
-          {
-            id: 4,
-            match: {
-              any: [
-                {
-                  op: "contains_any",
-                  phrases: ["tomorrow", "updated delivery", "if it doesn't arrive", "if it does not arrive", "reach back out", "let us know"]
-                }
-              ]
-            }
-          }
-        ],
-        fallbackReplies: {
-          chat: [
-            "This is really frustrating. I just want to know what happened.",
-            "Yes, you can verify the address.",
-            "That still doesn't make sense if the weather wasn't here.",
-            "What can you do to make this right?",
-            "Okay, thank you for helping."
-          ]
-        }
-      }
-    },
-    coaching: {
-      summaryGuidance:
-        "Summarize whether the agent acknowledged the delay and frustration, explained the cause clearly, offered the required 20 percent partial refund with both options, reassured the customer about the updated delivery timeline, and closed with ownership and support.",
-      qualityChecklist: [
+    "behavior": {
+      "shareOnlyIfAsked": [
+        "The shipping address is 3948 Simpson Road.",
+        "The item is Fluffy's cat litter."
+      ],
+      "allowedObjections": [
+        "Why is that my problem? There's no weather where I live! You should have shipped it from another location.",
+        "I needed that litter already. What are you going to do about it?",
+        "Are you sure it is actually coming tomorrow?"
+      ],
+      "conditionalFollowUps": [
         {
-          category: "Acknowledge & Personalize",
-          behaviors: [
-            "Used Mr. Munsen’s name",
-            "Referenced Fluffy",
-            "Restated the issue before resolving",
-            "Acknowledged frustration about the delay",
-            "Validated that it feels unfair when the weather was not local"
-          ]
+          "condition": "If the learner does not reference Fluffy or the cat litter early in the interaction.",
+          "reply": "Yes, it's Fluffy's cat litter. That's why I really need to know what's going on."
         },
         {
-          category: "Trust & Confidence",
-          behaviors: [
-            "Maintained a calm, steady tone when challenged",
-            "Explained the delay clearly using simple language",
-            "Avoided jargon",
-            "Focused on what can be done",
-            "Used confident, professional phrasing"
-          ]
+          "condition": "If the learner explains weather caused the delay but does not validate the customer's objection.",
+          "reply": "That still doesn't feel fair when the weather isn't even here."
         },
         {
-          category: "Discuss Options",
-          behaviors: [
-            "Offered the required 20 percent partial refund",
-            "Presented both refund placement options",
-            "Invited the customer to choose"
-          ]
+          "condition": "If the learner offers both refund options.",
+          "reply": "Please credit it back to the card."
         },
         {
-          category: "Reassurance",
-          behaviors: [
-            "Clearly stated and reaffirmed the updated delivery timeline",
-            "Affirmed that reaching out was reasonable",
-            "Reduced uncertainty about what happens next",
-            "Reconfirmed the address and timeline clearly"
-          ]
-        },
-        {
-          category: "Ownership & Effortless",
-          behaviors: [
-            "Used action-oriented language such as taking care of the issue",
-            "Verified the shipping address",
-            "Processed the 20 percent refund immediately",
-            "Clearly explained what was being done on the customer’s behalf",
-            "Stated what to do if delivery does not occur as expected",
-            "Closed by offering additional help"
-          ]
+          "condition": "If the learner clearly recaps the refund and delivery plan.",
+          "reply": "Okay, thank you. I'll watch for it tomorrow."
         }
       ],
-      evaluationCriteria:
-        "Evaluate only what the agent said in the transcript. Check whether each observable behavior occurred based on clear intent, not exact wording. Give credit when the behavior is clearly demonstrated even if phrased differently, and when a reasonable customer would understand the explanation or next steps. Do not require exact phrases or specific keywords. Mark a behavior as not observed only if it is completely missing or the explanation is unclear, incomplete, or could confuse the customer."
+      "closingLine": "Okay, thank you. I'll watch for it tomorrow.",
+      "successSofteningRule": "If the learner acknowledges the frustration, explains the delay clearly, offers the correct refund with options, and sets expectations, become calmer and cooperative."
+    }
+  },
+  "simulation": {
+    "prompting": {
+      "sharedBehaviorRules": [
+        "Stay in character as Mr. Munsen, the customer.",
+        "Do not provide policy details or solutions unless the learner offers or asks about them.",
+        "Ask only one follow-up question at a time.",
+        "Keep the scenario centered on the late delivery, the weather-related delay, address verification, and the required 20 percent partial refund.",
+        "If the learner validates the frustration, explains clearly, and takes ownership, respond naturally with brief appreciation or reassurance.",
+        "If the learner becomes defensive, vague, or skips the refund, remain frustrated and ask what Chewy can do to make the situation right."
+      ],
+      "chatSpecificRules": [
+        "Reply like a real customer in live chat.",
+        "Keep responses concise, usually 1 to 3 short sentences.",
+        "Do not write long paragraphs unless the learner asks for multiple details at once."
+      ],
+      "voiceSpecificRules": [
+        "Let the learner fully finish speaking before you respond.",
+        "Treat short pauses, filler words, and thinking moments as part of the learner's turn.",
+        "Sound direct and frustrated during the weather objection, then calmer once the learner owns the resolution."
+      ]
     },
-    frontend: {
-      shared: {
-        introInstructions: [
-          "Review the customer's reason for contact.",
-          "Support the customer as you would in a live interaction.",
-          "Use Coach Chewy for guidance.",
-          "End the experience to receive feedback."
+    "stateModel": {
+      "trackCurrentStep": true,
+      "stepAdvanceStrategy": "frontend_keyword_checks",
+      "chatStepProgression": [
+        {
+          "id": 0,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "munsen",
+                  "fluffy",
+                  "cat litter",
+                  "order"
+                ]
+              },
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "sorry",
+                  "understand",
+                  "frustrating",
+                  "glad you reached out",
+                  "look into",
+                  "check on"
+                ]
+              }
+            ],
+            "any": []
+          }
+        },
+        {
+          "id": 1,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "address",
+                  "shipping address",
+                  "verify",
+                  "confirm"
+                ]
+              }
+            ],
+            "any": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "pulling it up",
+                  "looking into",
+                  "checking",
+                  "order"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": 2,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "3948 simpson road",
+                  "3948 simpson rd",
+                  "verified",
+                  "confirmed"
+                ]
+              },
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "weather",
+                  "fulfillment center",
+                  "shipping route",
+                  "outbound deliveries",
+                  "delay"
+                ]
+              }
+            ],
+            "any": []
+          }
+        },
+        {
+          "id": 3,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "frustrating",
+                  "unfair",
+                  "understand",
+                  "not in your area",
+                  "not local",
+                  "apologize"
+                ]
+              },
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "tomorrow",
+                  "end of day",
+                  "scheduled to arrive",
+                  "updated delivery"
+                ]
+              }
+            ],
+            "any": []
+          }
+        },
+        {
+          "id": 4,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "20 percent",
+                  "20%",
+                  "partial refund",
+                  "refund"
+                ]
+              },
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "original payment method",
+                  "back to your card",
+                  "chewy account",
+                  "future use",
+                  "which would you prefer"
+                ]
+              }
+            ],
+            "any": []
+          }
+        },
+        {
+          "id": 5,
+          "match": {
+            "all": [
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "processed",
+                  "3 to 5 business days",
+                  "3-5 business days",
+                  "original payment method",
+                  "card"
+                ]
+              },
+              {
+                "op": "contains_any",
+                "phrases": [
+                  "tomorrow by end of day",
+                  "3948 simpson road",
+                  "reach back out",
+                  "anything else",
+                  "additional help"
+                ]
+              }
+            ],
+            "any": []
+          }
+        }
+      ],
+      "fallbackReplies": {
+        "chat": [
+          "Yes, that's the one.",
+          "Sure, it's 3948 Simpson Rd.",
+          "Why is that my problem? There's no weather where I live! You should have shipped it from another location.",
+          "What can you do to make this right?",
+          "Please credit it back to the card.",
+          "Okay, thank you."
         ]
-      },
-      chat: {
-        hotkeyProfile: "core",
-        guideTitle: "Coach Chewy Guidance",
-        customerDisplayName: "Mr. Munsen",
-        initialTranscript: [
-          {
-            role: "assistant",
-            label: "Customer",
-            meta: "Mr. Munsen",
-            content:
-              "Hi, this is Mr Munsen. According to my tracking information, my order was supposed to be here 2 days ago and I still haven’t seen it. Can you check on it for me?"
-          }
-        ],
-        guideSections: [
-          {
-            title: "Acknowledge the Delay and Personalize the Conversation",
-            body:
-              "The customer is frustrated that the order is two days late and wants help understanding what happened.",
-            bullets: [
-              "Greet Mr. Munsen and thank him for reaching out.",
-              "Reference Fluffy and the cat litter to personalize.",
-              "Acknowledge the delay and frustration before explaining next steps."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Investigate and Verify Key Details",
-            body: "The customer wants to know what is happening with the order.",
-            bullets: [
-              "Explain that you are checking the order.",
-              "Ask to verify the shipping address if needed.",
-              "Use calm, clear language while you investigate."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Explain the Delay Clearly",
-            body:
-              "The customer may push back on the reason for the delay, especially if the weather issue was not local.",
-            bullets: [
-              "Explain the cause of the delay in simple language.",
-              "Stay calm if the customer challenges the explanation.",
-              "Reinforce what is still being done to get the order delivered."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Offer the Required Resolution",
-            body:
-              "The order is late enough to require a 20 percent partial refund and the customer needs a clear choice.",
-            bullets: [
-              "Offer the required 20 percent partial refund.",
-              "Present both refund placement options clearly.",
-              "Ask the customer which option they prefer."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Reassure and Close with Ownership",
-            body: "The customer wants confidence about what happens next.",
-            bullets: [
-              "Reaffirm the updated delivery timeline.",
-              "Explain what to do if the package still does not arrive.",
-              "Close by offering additional help."
-            ],
-            pauseAfter: false
-          }
-        ]
-      },
-      voice: {
-        guideTopNote: "Begin by speaking your Chewy greeting.",
-        customerDisplayName: "Mr. Munsen",
-        guideSections: [
-          {
-            title: "Open with Empathy and Personalization",
-            body:
-              "The customer is calling about a late delivery and wants immediate reassurance that the issue is being taken seriously.",
-            bullets: [
-              "Greet Mr. Munsen and thank him for calling.",
-              "Reference Fluffy and the cat litter naturally.",
-              "Acknowledge the frustration of the late delivery."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Investigate and Explain Clearly",
-            body:
-              "The customer wants a clear explanation and may challenge the reason for the delay.",
-            bullets: [
-              "Verify any needed details before moving forward.",
-              "Explain the delay in simple, confident language.",
-              "Stay calm if the customer pushes back."
-            ],
-            pauseAfter: true
-          },
-          {
-            title: "Offer Resolution and Close with Support",
-            body:
-              "The customer should leave the call feeling that the issue was handled and the next steps are clear.",
-            bullets: [
-              "Offer the required 20 percent partial refund and explain the available options.",
-              "Reaffirm the updated delivery expectation.",
-              "Offer additional help before closing."
-            ],
-            pauseAfter: false
-          }
-        ],
-        endNote:
-          "After you finish supporting the customer, click End below to review your feedback."
       }
     }
   },
+  "coaching": {
+    "managerSummary": "This scenario helps learners practice service recovery for a late essential delivery where the root cause is weather near the fulfillment center, not the customer's local area. The learner should verify the address, explain the delay clearly, handle a customer challenge calmly, offer the required 20 percent partial refund with placement options, and set clear delivery and refund expectations.",
+    "summaryGuidance": "Summarize whether the learner personalized the interaction around Mr. Munsen and Fluffy, acknowledged frustration, explained the weather-related fulfillment delay clearly, offered and processed the required 20 percent refund, set delivery and refund expectations, and closed with ownership and support.",
+    "evaluationCriteria": "Evaluate only what the learner said in the transcript. Use the official Customer Care behavior framework and this scenario-specific guidance. Give credit for clear natural phrasing; exact wording from the example call is not required.",
+    "behaviorRubric": [
+      {
+        "behavior_name": "issue_understanding",
+        "has_opportunity": true,
+        "opportunity_guidance": "The customer opens by saying tracking showed the order should have arrived two days ago and asks the learner to check on it.",
+        "to_some_extent_guidance": "The learner identifies that the order is late and begins checking the order, but may not fully restate the issue, mention the essential cat litter, or connect the issue to the original estimated delivery date.",
+        "to_great_extent_guidance": "The learner clearly confirms the late delivery issue, references Fluffy's cat litter, verifies the relevant order and shipping address, and demonstrates understanding before moving to the resolution.",
+        "missed_opportunity_guidance": "The learner jumps straight to a refund or generic tracking answer without confirming what is late, which order is involved, or why the customer is concerned.",
+        "ideal_agent_example": "I can absolutely check that for you, Mr. Munsen. I see this is Fluffy's cat litter, and I understand it was expected two days ago and still has not arrived.",
+        "missed_opportunity_example": "Let me see. It is delayed.",
+        "evaluator_notes": "A correct refund alone should not earn high issue understanding unless the learner first shows they understand the customer's actual issue."
+      },
+      {
+        "behavior_name": "emotional_acknowledgement",
+        "has_opportunity": true,
+        "opportunity_guidance": "The late essential item and the customer's objection about non-local weather create clear frustration cues.",
+        "to_some_extent_guidance": "The learner gives a basic apology or generic empathy statement, or acknowledges only the initial delay but not the later fairness objection.",
+        "to_great_extent_guidance": "The learner promptly and specifically validates that a late essential item is frustrating and that it feels unfair when the weather was not local, while staying calm and non-defensive.",
+        "missed_opportunity_guidance": "The learner explains policy or logistics without acknowledging the customer's frustration or the fairness concern.",
+        "ideal_agent_example": "I understand why that feels frustrating, especially when the weather was not where you live and this is something Fluffy needs.",
+        "missed_opportunity_example": "Weather delays happen sometimes, so we just have to wait.",
+        "evaluator_notes": "Generic apologies may support To Some Extent, but To a Great Extent requires emotion-specific acknowledgement tied to this scenario."
+      },
+      {
+        "behavior_name": "problem_ownership",
+        "has_opportunity": true,
+        "opportunity_guidance": "The learner must investigate the late order, explain the cause, offer the required refund, process the selected refund option, and close the loop.",
+        "to_some_extent_guidance": "The learner takes some action, such as checking tracking or offering the refund, but does not clearly narrate progress, reassure the customer, or close the loop.",
+        "to_great_extent_guidance": "The learner uses action-oriented ownership language throughout, verifies the address, explains what they are doing, processes the 20 percent refund immediately, and tells the customer what to do if delivery does not occur as expected.",
+        "missed_opportunity_guidance": "The learner shifts responsibility to weather, the carrier, or the customer, or leaves the customer to figure out next steps.",
+        "ideal_agent_example": "I'll take care of this now. I verified the address, confirmed the updated delivery, and I am processing the 20 percent refund back to your card.",
+        "missed_opportunity_example": "You will need to keep checking tracking and contact us again later.",
+        "evaluator_notes": "Completing one task can earn To Some Extent. To a Great Extent requires ownership language, narrated action, and follow-through."
+      },
+      {
+        "behavior_name": "personalization",
+        "has_opportunity": true,
+        "opportunity_guidance": "The scenario includes the customer's name, Fluffy's name, the essential item, the shipping address, and refund placement options.",
+        "to_some_extent_guidance": "The learner uses Mr. Munsen's name or references Fluffy or cat litter once, or offers a choice of refund placement without much tailoring.",
+        "to_great_extent_guidance": "The learner naturally uses Mr. Munsen's name, references Fluffy and the cat litter, recognizes the item is essential, and gives refund placement options in a way that lets the customer choose what works best.",
+        "missed_opportunity_guidance": "The learner treats the interaction as a generic late package contact and does not use the available customer, pet, product, or preference details.",
+        "ideal_agent_example": "Since this is Fluffy's cat litter, I understand why timing matters. I can apply the refund back to your card or to your Chewy account, whichever is better for you.",
+        "missed_opportunity_example": "Your item is delayed. I can issue a refund.",
+        "evaluator_notes": "Pet name alone is not enough for To a Great Extent. Look for multiple relevant details used naturally."
+      },
+      {
+        "behavior_name": "expectation_setting",
+        "has_opportunity": true,
+        "opportunity_guidance": "The learner must set expectations for the updated delivery date, refund timing, refund destination, and what to do if delivery does not happen.",
+        "to_some_extent_guidance": "The learner provides one or two expectations, such as tomorrow's delivery or the 3 to 5 business day refund timing, but misses ownership, address confirmation, or what happens if the order does not arrive.",
+        "to_great_extent_guidance": "The learner clearly states delivery is scheduled for tomorrow by end of day, confirms the 20 percent refund is going back to the original payment method, gives the 3 to 5 business day refund timeframe, reconfirms the address, and explains to reach back out if anything changes.",
+        "missed_opportunity_guidance": "The learner leaves the customer unsure when the order will arrive, when the refund will appear, where the refund is going, or what to do if the delivery misses again.",
+        "ideal_agent_example": "Your order is confirmed for 3948 Simpson Road and is scheduled to arrive tomorrow by end of day. The 20 percent refund is going back to your card and should appear within 3 to 5 business days.",
+        "missed_opportunity_example": "It should be there soon and the refund will process.",
+        "evaluator_notes": "A timeline alone is To Some Extent. To a Great Extent requires timeline, ownership, and customer-visible outcome."
+      },
+      {
+        "behavior_name": "pet_engagement",
+        "has_opportunity": true,
+        "opportunity_guidance": "The order is for Fluffy's cat litter, which creates a natural pet-centered rapport moment without derailing the service recovery.",
+        "to_some_extent_guidance": "The learner mentions Fluffy's name or the cat litter briefly but does not connect it to the customer's concern.",
+        "to_great_extent_guidance": "The learner uses Fluffy's name naturally and acknowledges that cat litter is an essential item, building pet-centered rapport while staying focused on resolving the late delivery.",
+        "missed_opportunity_guidance": "The learner never references Fluffy or the pet-centered importance of the item even though the information is available.",
+        "ideal_agent_example": "I know cat litter is one of those essentials you count on for Fluffy, so I want to get you clear answers and a fair resolution.",
+        "missed_opportunity_example": "This product is delayed.",
+        "evaluator_notes": "Do not require extended pet conversation. Reward concise pet-centered relevance."
+      },
+      {
+        "behavior_name": "communication_style",
+        "has_opportunity": true,
+        "opportunity_guidance": "The learner must explain the delay, handle an objection, present options, and recap next steps in a clear and professional way.",
+        "to_some_extent_guidance": "The learner is mostly clear and professional but may sound somewhat scripted, miss a transition, use mild jargon, or present details in a less organized order.",
+        "to_great_extent_guidance": "The learner remains calm, steady, warm, organized, and professional throughout the challenge, uses simple language instead of internal jargon, and clearly separates explanation, options, action, and recap.",
+        "missed_opportunity_guidance": "The learner sounds defensive, robotic, confusing, overly casual, or uses jargon that makes the delivery issue or refund process harder to understand.",
+        "ideal_agent_example": "Even though the weather was not in your area, it affected the fulfillment center your order shipped from. The order is now scheduled for tomorrow, and I can also apply the required 20 percent refund for the inconvenience.",
+        "missed_opportunity_example": "The FC had weather exceptions and we cannot reroute outbound volume after EDD variance.",
+        "evaluator_notes": "Communication style can reach To a Great Extent when the contact is consistently clear and steady with no meaningful communication flaw."
+      }
+    ],
+    "qualityChecklist": [
+      {
+        "category": "Acknowledge & Personalize",
+        "behaviors": [
+          "Used Mr. Munsen's name",
+          "Referenced Fluffy",
+          "Restated the issue before resolving",
+          "Acknowledged frustration about the delay",
+          "Validated that it feels unfair when the weather was not local"
+        ]
+      },
+      {
+        "category": "Trust & Confidence",
+        "behaviors": [
+          "Maintained a calm, steady tone when challenged",
+          "Explained the delay clearly using simple language",
+          "Avoided jargon",
+          "Focused on what can be done",
+          "Used confident, professional phrasing"
+        ]
+      },
+      {
+        "category": "Discuss Options",
+        "behaviors": [
+          "Offered the required 20 percent partial refund",
+          "Presented both refund placement options",
+          "Invited the customer to choose"
+        ]
+      },
+      {
+        "category": "Reassurance",
+        "behaviors": [
+          "Reinforced the updated delivery date",
+          "Affirmed that reaching out was reasonable",
+          "Reduced uncertainty about what happens next",
+          "Reconfirmed the address and timeline clearly"
+        ]
+      },
+      {
+        "category": "Ownership & Effortless",
+        "behaviors": [
+          "Used action-oriented language such as taking care of the issue",
+          "Verified the shipping address",
+          "Processed the 20 percent refund immediately",
+          "Clearly explained what was being done on the customer's behalf",
+          "Stated what to do if delivery does not occur as expected",
+          "Closed by offering additional help"
+        ]
+      }
+    ]
+  },
+  "frontend": {
+    "shared": {
+      "experienceTitle": "Chewy Customer Simulator",
+      "experienceSubtitle": "Apply what you've learned in a practice customer interaction, then get coaching.",
+      "introInstructions": [
+        "Review the customer's reason for contact.",
+        "Support the customer as you would in a live interaction.",
+        "Use Coach Chewy for guidance during practice.",
+        "End the experience to receive feedback."
+      ]
+    },
+    "chat": {
+      "enabled": true,
+      "hotkeyProfile": "core",
+      "guideTitle": "Coach Chewy Guidance",
+      "customerDisplayName": "Mr. Munsen",
+      "initialTranscript": [
+        {
+          "role": "assistant",
+          "label": "Customer",
+          "meta": "Mr. Munsen",
+          "content": "According to my tracking information, Fluffy's cat litter was supposed to be here 2 days ago and I still haven't seen it. Can you check on it for me?"
+        }
+      ],
+      "guideSections": [
+        {
+          "title": "Start with Ownership",
+          "body": "Mr. Munsen is asking about a late order for Fluffy's cat litter.",
+          "bullets": [
+            "Greet Mr. Munsen warmly and thank him for reaching out.",
+            "Confirm you will look into the order right away.",
+            "Reference Fluffy and the cat litter so the interaction feels pet centered.",
+            "Acknowledge that a late essential delivery is frustrating before problem solving."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Verify Before Explaining",
+          "body": "The customer confirms this is the right order and provides the shipping address.",
+          "bullets": [
+            "Use confident, action-oriented language while pulling up the order.",
+            "Ask a clarifying question to verify the shipping address.",
+            "Repeat the full address back and state that you verified it."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Explain the Delay Simply",
+          "body": "The delay was caused by severe weather near the fulfillment center, not weather where the customer lives.",
+          "bullets": [
+            "Explain the reason using simple language with no internal jargon.",
+            "Stay calm and steady if Mr. Munsen challenges the explanation.",
+            "Validate why it feels unfair when the weather was not local.",
+            "Pivot to what can be done now and reinforce the updated delivery expectation."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Offer the Refund Choice",
+          "body": "The order is three days past the estimated delivery date, so the correct resolution is a 20 percent partial refund.",
+          "bullets": [
+            "Offer the required 20 percent partial refund.",
+            "Present both placement options: original payment method or Chewy account.",
+            "Invite Mr. Munsen to choose where the refund should be applied.",
+            "Use reassurance language that shows you are handling it."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Process and Recap",
+          "body": "Mr. Munsen chooses the original payment method.",
+          "bullets": [
+            "Confirm the preference and say you are processing the refund now.",
+            "Set the 3 to 5 business day refund expectation.",
+            "Recap delivery by end of day tomorrow and confirm 3948 Simpson Road.",
+            "Explain what to do if delivery does not occur as expected.",
+            "Close warmly by offering additional help."
+          ],
+          "pauseAfter": false
+        }
+      ],
+      "standardText": []
+    },
+    "voice": {
+      "enabled": true,
+      "defaultVoice": "alloy",
+      "guideTopNote": "Begin by speaking your Chewy greeting. Keep your tone calm, warm, and confident.",
+      "customerDisplayName": "Mr. Munsen",
+      "guideSections": [
+        {
+          "title": "Acknowledge and Personalize",
+          "body": "Mr. Munsen is calling because Fluffy's cat litter is late.",
+          "bullets": [
+            "Use Mr. Munsen's name.",
+            "Reference Fluffy and the cat litter.",
+            "Acknowledge the frustration of a late essential item.",
+            "Confirm you will look into the order right away."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Verify and Explain",
+          "body": "The address should be verified before explaining the weather-related fulfillment delay.",
+          "bullets": [
+            "Ask for and verify the shipping address.",
+            "Repeat 3948 Simpson Road clearly.",
+            "Explain that severe weather near the fulfillment center slowed outbound deliveries.",
+            "Use simple language and avoid internal jargon."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Handle the Challenge",
+          "body": "The customer may challenge why non-local weather affected his order.",
+          "bullets": [
+            "Validate why the situation feels unfair.",
+            "Stay calm and avoid sounding defensive.",
+            "Explain that the shipping route was affected from the facility.",
+            "Reinforce that the order is scheduled to arrive tomorrow by end of day."
+          ],
+          "pauseAfter": true
+        },
+        {
+          "title": "Resolve and Close",
+          "body": "Because the order is three days past the estimated delivery date, the customer should receive a 20 percent partial refund.",
+          "bullets": [
+            "Offer the 20 percent partial refund.",
+            "Present both refund placement options and let the customer choose.",
+            "Process the refund to the original payment method when requested.",
+            "Set the 3 to 5 business day refund expectation.",
+            "Recap the delivery date, address, and next steps before offering more help."
+          ],
+          "pauseAfter": false
+        }
+      ],
+      "endNote": "After you finish supporting the customer, click End below to review your feedback."
+    }
+  }
+},
 
   delivery_promise_miss_10_partial_refund: {
     id: "delivery_promise_miss_10_partial_refund",
@@ -2304,6 +2546,59 @@ async function fetchWithTimeout(url, opts = {}, timeoutMs = 20000) {
   }
 }
 
+function shouldRetryOpenAIRequest(result) {
+  if (!result) return false;
+  const status = Number(result.status || 0);
+  if (status === 429) return true;
+  if (status >= 500 && status <= 599) return true;
+  const name = String(result.error?.name || "").trim();
+  return name === "AbortError";
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchOpenAITextWithRetry(url, opts = {}, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || 12000);
+  const retries = Math.max(0, Number(options.retries || 0));
+  const route = String(options.route || "openai").trim();
+  let lastResult = null;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(url, opts, timeoutMs);
+      const bodyText = await response.text().catch(() => "");
+      lastResult = {
+        ok: response.ok,
+        status: response.status,
+        bodyText,
+        attempts: attempt + 1
+      };
+    } catch (error) {
+      lastResult = {
+        ok: false,
+        status: 0,
+        bodyText: "",
+        error,
+        attempts: attempt + 1
+      };
+    }
+
+    if (lastResult.ok) return lastResult;
+    if (attempt >= retries || !shouldRetryOpenAIRequest(lastResult)) return lastResult;
+
+    console.warn(`${route} transient OpenAI failure; retrying`, {
+      attempt: attempt + 1,
+      status: lastResult.status,
+      error: lastResult.error ? String(lastResult.error?.message || lastResult.error) : ""
+    });
+    await delay(250 * (attempt + 1));
+  }
+
+  return lastResult;
+}
+
 function safeJsonParse(s) {
   try {
     return JSON.parse(s);
@@ -2547,6 +2842,24 @@ function extractTranscriptExcerpt(transcript, turnId) {
   return line ? `[Turn ${index + 1}] ${line}` : "";
 }
 
+function normalizeCriteriaResults(input) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const label = String(item.label || item.criterion || item.behavior || "").trim();
+      const rationale = String(item.rationale || item.explanation || item.reason || "").trim();
+      if (!label) return null;
+      return {
+        label,
+        observed: !!item.observed,
+        rationale
+      };
+    })
+    .filter(Boolean);
+}
+
 function normalizeBehaviorResults(input, transcript = "") {
   const source = Array.isArray(input)
     ? input
@@ -2564,7 +2877,16 @@ function normalizeBehaviorResults(input, transcript = "") {
 
   const behaviors = OFFICIAL_BEHAVIOR_DEFINITIONS.map((definition) => {
     const raw = byName[definition.behavior_name] || {};
-    const rating = normalizeRating(raw.rating);
+    const criteriaResults = normalizeCriteriaResults(raw.criteria_results || raw.criteriaResults || raw.criteria || []);
+    const rawRating = normalizeRating(raw.rating);
+    const hasObservedCriteria = criteriaResults.some((item) => item && item.observed);
+    const rating =
+      rawRating !== "No Opportunity" &&
+      rawRating !== "Missed Opportunity" &&
+      criteriaResults.length > 0 &&
+      !hasObservedCriteria
+        ? "Missed Opportunity"
+        : rawRating;
     const score = ratingToScore(rating);
     const rawTurnId =
       raw.evidence_turn_id !== undefined
@@ -2591,7 +2913,9 @@ function normalizeBehaviorResults(input, transcript = "") {
       behavior_summary:
         rating === "No Opportunity"
           ? String(raw.behavior_summary || raw.behaviorSummary || "").trim()
-          : String(raw.behavior_summary || raw.behaviorSummary || raw.explanation || "").trim()
+          : String(raw.behavior_summary || raw.behaviorSummary || raw.explanation || "").trim(),
+      score_explanation: String(raw.score_explanation || raw.scoreExplanation || "").trim(),
+      criteria_results: criteriaResults
     };
   });
 
@@ -2622,7 +2946,7 @@ function selectFocusBehavior(behaviors) {
   };
 
   return (Array.isArray(behaviors) ? behaviors : [])
-    .filter((item) => item && item.score_denominator > 0)
+    .filter((item) => item && item.score_denominator > 0 && item.score_numerator < 100)
     .sort((a, b) => {
       const aRank = rank[a.rating] ?? 99;
       const bRank = rank[b.rating] ?? 99;
@@ -2649,77 +2973,74 @@ function normalizeLearnerFields(body) {
 
   return {
     learner_id: learnerId,
-    learner_employee_id: String(body.learner_employee_id || body.learnerEmployeeId || learnerId).trim(),
-    learner_username: String(body.learner_username || body.learnerUsername || body.employee_username || body.employeeUsername || "").trim(),
-    learner_email: String(body.learner_email || body.learnerEmail || body.employee_email || body.employeeEmail || "").trim(),
     learner_name: learnerName,
     learner_first_name: String(body.learner_first_name || body.learnerFirstName || split.learner_first_name).trim(),
-    learner_last_name: String(body.learner_last_name || body.learnerLastName || split.learner_last_name).trim(),
-    learner_identity_source: String(body.learner_identity_source || body.learnerIdentitySource || "scorm_2004").trim()
+    learner_last_name: String(body.learner_last_name || body.learnerLastName || split.learner_last_name).trim()
   };
+}
+
+function buildBehaviorDashboardColumns(behaviors) {
+  const out = {};
+  for (const behavior of Array.isArray(behaviors) ? behaviors : []) {
+    const name = String(behavior?.behavior_name || "").trim();
+    if (!name) continue;
+    const criteria = Array.isArray(behavior.criteria_results) ? behavior.criteria_results : [];
+    const observedCriteria = criteria
+      .filter((item) => item && item.observed)
+      .map((item) => String(item.label || "").trim())
+      .filter(Boolean);
+    const missedCriteria = criteria
+      .filter((item) => item && !item.observed)
+      .map((item) => String(item.label || "").trim())
+      .filter(Boolean);
+    out[`${name}_rating`] = behavior.rating || "";
+    out[`${name}_score`] = behavior.score_denominator ? roundScore(behavior.score_numerator / behavior.score_denominator) : null;
+    out[`${name}_summary`] = behavior.behavior_summary || "";
+    out[`${name}_score_explanation`] = behavior.score_explanation || "";
+    out[`${name}_observed_criteria`] = observedCriteria.join("; ");
+    out[`${name}_missed_criteria`] = missedCriteria.join("; ");
+  }
+  return out;
 }
 
 function buildCoachingDynamoItems(body) {
   const sessionId = String(body.simulation_session_id || body.simulationSessionId || body.sessionId || "").trim();
   const completedAt = String(body.completed_at || body.completedAt || body.endedAt || new Date().toISOString()).trim();
-  const createdAt = String(body.created_at || body.createdAt || completedAt).trim();
   const scenarioId = String(body.scenario_id || body.scenarioId || "").trim();
   const scenarioName = String(body.scenario_name || body.scenarioName || body.scenarioLabel || "").trim();
-  const courseId = String(body.course_id || body.courseId || "").trim();
+  const completionStatus = String(body.completionStatus || body.completion_status || "Completed").trim() || "Completed";
   const transcript = body.transcript ? String(body.transcript).replace(/\\n/g, "\n") : "";
   const normalized = normalizeBehaviorResults(body.behavior_results || body.behaviorResults || body.behaviors || [], transcript);
   const learner = normalizeLearnerFields(body);
   const { trainingDate, trainingTime } = formatDateParts(completedAt);
+  const agentId = String(body.agentId || learner.learner_id || "").trim();
+  const endedAtSessionId = `${completedAt}#${sessionId}`;
 
   const base = {
+    agentId,
+    endedAt_sessionId: endedAtSessionId,
     simulation_session_id: sessionId,
     ...learner,
-    course_id: courseId,
     scenario_id: scenarioId,
     scenario_name: scenarioName,
-    scenarioLabel: scenarioName,
     channel: String(body.channel || "").trim(),
-    created_at: createdAt,
     completed_at: completedAt,
+    completionStatus,
     trainingDate,
     trainingTime
   };
 
   const sessionItem = {
     ...base,
-    record_type: "simulation_session",
-    agentId: learner.learner_id,
-    agentName: learner.learner_name || "Unknown Agent",
-    endedAt_sessionId: `${completedAt}#${sessionId}#session`,
-    completionStatus: String(body.completionStatus || body.completion_status || "Completed").trim() || "Completed",
     coachSummaryText: String(body.coachSummaryText || body.coach_summary_text || body.summary || "").trim(),
-    transcript,
+    what_went_well: String(body.what_went_well || body.whatWentWell || "").trim(),
+    what_to_strengthen_next: String(body.what_to_strengthen_next || body.whatToStrengthenNext || "").trim(),
     final_score: normalized.final_score,
-    total_score_numerator: normalized.total_score_numerator,
-    total_score_denominator: normalized.total_score_denominator,
     focus_behavior: normalized.focus_behavior ? normalized.focus_behavior.behavior_name : "",
-    strongest_behaviors: normalized.strongest_behaviors
+    ...buildBehaviorDashboardColumns(normalized.behaviors)
   };
 
-  const behaviorItems = normalized.behaviors.map((behavior) => ({
-    ...base,
-    record_type: "behavior_result",
-    agentId: learner.learner_id,
-    agentName: learner.learner_name || "Unknown Agent",
-    endedAt_sessionId: `${completedAt}#${sessionId}#behavior#${behavior.behavior_name}`,
-    behavior_name: behavior.behavior_name,
-    behavior_label: behavior.behavior_label,
-    rating: behavior.rating,
-    score_numerator: behavior.score_numerator,
-    score_denominator: behavior.score_denominator,
-    evidence_turn_id: behavior.evidence_turn_id,
-    evidence_time_offset_seconds: behavior.evidence_time_offset_seconds,
-    evidence_text: behavior.evidence_text,
-    transcript_excerpt: behavior.transcript_excerpt,
-    behavior_summary: behavior.behavior_summary
-  }));
-
-  return [sessionItem, ...behaviorItems];
+  return [sessionItem];
 }
 
 function buildObservedBehaviorsText(observedBehaviors) {
@@ -3023,7 +3344,7 @@ exports.handler = async (event) => {
         }))
       ];
 
-      const r = await fetchWithTimeout(
+      const openAIResult = await fetchOpenAITextWithRetry(
         RESPONSES_URL,
         {
           method: "POST",
@@ -3046,28 +3367,45 @@ exports.handler = async (event) => {
             }
           })
         },
-        60000
+        {
+          timeoutMs: CHAT_TURN_TIMEOUT_MS,
+          retries: CHAT_TURN_RETRIES,
+          route: "chat-turn"
+        }
       );
 
-      const bodyText = await r.text().catch(() => "");
-      if (!r.ok) {
+      const bodyText = String(openAIResult?.bodyText || "");
+      if (!openAIResult?.ok) {
+        console.error("chat-turn OpenAI request failed", {
+          scenarioId: scenario.id,
+          model: CHAT_MODEL,
+          status: openAIResult?.status || 0,
+          attempts: openAIResult?.attempts || 0,
+          error: openAIResult?.error ? String(openAIResult.error?.message || openAIResult.error).slice(0, 300) : ""
+        });
         return json({
           error: true,
-          message: "OpenAI chat-turn request failed",
-          status: r.status,
-          body: bodyText.slice(0, 800)
-        }, 500);
+          message: "The chat service could not respond right now.",
+          detail: "OpenAI chat-turn request failed",
+          status: openAIResult?.status || 0,
+          attempts: openAIResult?.attempts || 0
+        }, 502);
       }
 
       const parsed = safeJsonParse(bodyText);
       const structured = extractStructuredResponseJson(parsed);
 
       if (!structured || !structured.customerMessage) {
+        console.error("chat-turn response parse failed", {
+          scenarioId: scenario.id,
+          model: CHAT_MODEL,
+          bodySnippet: bodyText.slice(0, 400)
+        });
         return json({
           error: true,
-          message: "Could not parse chat-turn response",
-          body: bodyText.slice(0, 800)
-        }, 500);
+          message: "The chat service could not respond right now.",
+          detail: "Could not parse chat-turn response"
+        }, 502);
       }
 
       return json({
@@ -3104,6 +3442,7 @@ CRITICAL RULES
 - Do not reward or punish the learner based on whether they offered a refund, replacement, or concession.
 - Reserve To a Great Extent for visibly strong, positive coaching examples.
 - To Some Extent requires a real, situation-specific attempt. Generic process language alone is not enough.
+- To Some Extent must have at least one criteria_results item marked observed true. If no criteria were observed, use Missed Opportunity.
 
 OUTPUT RULES
 - No code fences.
@@ -3112,6 +3451,9 @@ OUTPUT RULES
 - Cite one evidence_turn_id for every behavior except No Opportunity.
 - Keep evidence_text to a short phrase or sentence from the agent when available.
 - Keep each behavior_summary to 1 or 2 short sentences that explain why the rating fits.
+- Keep score_explanation to 1 learner-facing sentence that directly explains the behavior's score.
+- For criteria_results, create 3 to 5 scenario-specific observable criteria for each behavior based on the official definition and scenario rubric. Mark each observed true or false and include a brief rationale.
+- The behavior rating and criteria_results must agree: To Some Extent or To a Great Extent requires at least one observed true criterion.
 `.trim();
 
       const userPrompt = `
@@ -3128,12 +3470,18 @@ Each behavior result must have:
 - evidence_text (short agent phrase or sentence when available)
 - transcript_excerpt (one short excerpt, preferably the cited turn)
 - behavior_summary (short diagnostic coaching summary; may be empty for No Opportunity)
+- score_explanation (one sentence explaining why this behavior received this score)
+- criteria_results (3 to 5 checklist items with label, observed, and rationale)
 
 2) summary: one short paragraph written in second person that tells the learner what they did well and what to work on next. Use "you" and "your." Keep it concise.
 
 3) what_went_well: one short learner-friendly sentence.
 
 4) what_to_strengthen_next: one short learner-friendly sentence.
+
+5) what_went_well_points: 2 to 3 concrete strengths from the whole interaction.
+
+6) what_to_strengthen_next_points: 2 to 3 concrete priority actions for the next attempt.
 
 TRANSCRIPT:
 ${numberedTranscript}
@@ -3156,16 +3504,44 @@ ${numberedTranscript}
                 evidence_turn_id: { type: ["integer", "null"] },
                 evidence_text: { type: "string" },
                 transcript_excerpt: { type: "string" },
-                behavior_summary: { type: "string" }
+                behavior_summary: { type: "string" },
+                score_explanation: { type: "string" },
+                criteria_results: {
+                  type: "array",
+                  minItems: 3,
+                  maxItems: 5,
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      label: { type: "string" },
+                      observed: { type: "boolean" },
+                      rationale: { type: "string" }
+                    },
+                    required: ["label", "observed", "rationale"]
+                  }
+                }
               },
-              required: ["behavior_name", "rating", "evidence_turn_id", "evidence_text", "transcript_excerpt", "behavior_summary"]
+              required: ["behavior_name", "rating", "evidence_turn_id", "evidence_text", "transcript_excerpt", "behavior_summary", "score_explanation", "criteria_results"]
             }
           },
           summary: { type: "string", minLength: 1 },
           what_went_well: { type: "string" },
-          what_to_strengthen_next: { type: "string" }
+          what_to_strengthen_next: { type: "string" },
+          what_went_well_points: {
+            type: "array",
+            minItems: 2,
+            maxItems: 3,
+            items: { type: "string" }
+          },
+          what_to_strengthen_next_points: {
+            type: "array",
+            minItems: 2,
+            maxItems: 3,
+            items: { type: "string" }
+          }
         },
-        required: ["behavior_results", "summary", "what_went_well", "what_to_strengthen_next"]
+        required: ["behavior_results", "summary", "what_went_well", "what_to_strengthen_next", "what_went_well_points", "what_to_strengthen_next_points"]
       };
 
       let evaluationObj = null;
@@ -3381,5 +3757,6 @@ exports.__test = {
   ratingToScore,
   normalizeBehaviorResults,
   buildCoachingDynamoItems,
-  selectFocusBehavior
+  selectFocusBehavior,
+  shouldRetryOpenAIRequest
 };

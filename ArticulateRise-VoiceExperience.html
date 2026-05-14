@@ -5,7 +5,7 @@ HOW TO USE
 1. Upload/paste this file into your Articulate Rise block for the voice experience.
 2. Set SESSION_BASE to your AWS API base URL.
 3. Set SCENARIO_OVERRIDE to the scenario id you want to run.
-4. Leave SCENARIO_OVERRIDE blank to use the default scenario.
+4. This file currently selects late_delivery_20_partial_refund directly.
 
 WHAT TO EDIT
 - SESSION_BASE = your API Gateway base URL
@@ -828,6 +828,19 @@ NOTES
       margin-bottom: 4px;
     }
 
+    .summary-points {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .summary-points li {
+      font-size: 14px;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+
     .priority-focus {
       margin-top: 12px;
       border: 1px solid #cfe0ff;
@@ -1012,6 +1025,111 @@ NOTES
       font-size: 12px;
       letter-spacing: .04em;
       text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .criteria-score-note {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .criteria-score-note strong {
+      display: block;
+      color: #0a3a8f;
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .criteria-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .criteria-helper {
+      margin: 0;
+      color: #4b5563;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .criteria-item {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #ffffff;
+    }
+
+    .criteria-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .criteria-check .criteria-icon {
+      background: #22c55e;
+    }
+
+    .criteria-miss .criteria-icon {
+      background: #dc2626;
+    }
+
+    .criteria-copy strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.3;
+      color: #111827;
+      margin-bottom: 3px;
+    }
+
+    .criteria-status {
+      display: block;
+      color: #0a3a8f;
+      font-size: 11px;
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .criteria-copy span {
+      display: block;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #4b5563;
+    }
+
+    .criteria-tip {
+      background: #edf5ff;
+      border: 1px solid #cddff8;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+
+    .criteria-tip strong {
+      display: block;
+      color: #1f2937;
+      font-size: 13px;
       margin-bottom: 4px;
     }
 
@@ -1242,7 +1360,7 @@ NOTES
 
     const INGEST_TOKEN = "";
 
-    const SCENARIO_OVERRIDE = "";
+    const SCENARIO_OVERRIDE = "late_delivery_20_partial_refund";
     const DEFAULT_SCENARIO_ID = "late_delivery_20_partial_refund";
     const ACTIVE_SCENARIO_ID = (() => {
       const explicitOverride = String(SCENARIO_OVERRIDE || "").trim();
@@ -1261,62 +1379,6 @@ NOTES
     const EVALUATION_RETRY_INITIAL_DELAY_MS = 2000;
     const EVALUATION_RETRY_MAX_DELAY_MS = 15000;
     const EVALUATION_MAX_ATTEMPTS = 3;
-    const FALLBACK_VOICE_GUIDE_TOP_NOTE = "Begin by speaking your Chewy greeting.";
-    const FALLBACK_VOICE_GUIDE_SECTIONS = [
-      {
-        title: "Open the Call with Confidence",
-        body: "The customer is calling with a question or concern and needs calm, clear support.",
-        bullets: [
-          "Greet the customer and thank them for calling.",
-          "Personalize the conversation when appropriate.",
-          "Acknowledge the concern in a calm, supportive way.",
-          "Let the customer know you will help right away."
-        ],
-        pauseAfter: true
-      },
-      {
-        title: "Take Ownership and Gather Details",
-        body: "The customer explains the situation and wants to understand what is happening.",
-        bullets: [
-          "Explain what you are reviewing.",
-          "Acknowledge the customer's experience and any frustration.",
-          "Ask for any details needed to continue."
-        ],
-        pauseAfter: true
-      },
-      {
-        title: "Verify Information and Share the Current Status",
-        body: "The customer has provided what you need and is waiting for a clear update.",
-        bullets: [
-          "Repeat key details clearly and confirm they are correct.",
-          "Explain the current status in simple language.",
-          "Keep the explanation easy to follow and focused on what matters most."
-        ],
-        pauseAfter: true
-      },
-      {
-        title: "Address Concerns and Offer a Path Forward",
-        body: "The customer wants reassurance, ownership, and a clear resolution.",
-        bullets: [
-          "Validate the concern and show ownership.",
-          "Explain what can be done next.",
-          "Set expectations clearly and confidently.",
-          "Offer available options or support when appropriate."
-        ],
-        pauseAfter: true
-      },
-      {
-        title: "Confirm Next Steps and Close the Call",
-        body: "The customer is ready to wrap up and wants confidence about what happens next.",
-        bullets: [
-          "Recap the resolution or current status briefly.",
-          "Confirm any next steps or timing expectations.",
-          "Offer additional help before ending the call."
-        ],
-        pauseAfter: true
-      }
-    ];
-    const FALLBACK_VOICE_END_NOTE = "After you finish supporting the customer, click End below to review your feedback.";
     const COACH_CHEWY_IMAGE_SRC = "https://pub-f427f39912f4461691149d76a2e41031.r2.dev/Coach_Chewy_Circle_large.png";
 
     function getVoiceStorageKey(scenarioId = getScenarioId()) {
@@ -1357,6 +1419,7 @@ NOTES
     let guideCollapsed = false;
     let evaluationRetryCancelled = false;
     let scenarioDisplayConfig = null;
+    let scenarioLoadFailed = false;
 
     if (HIDE_SCENARIO_DROPDOWN) {
       const label = scenarioSel.closest("label");
@@ -1434,32 +1497,44 @@ NOTES
       );
     }
 
-    function applyFallbackVoiceDisplayContent() {
+    function renderScenarioUnavailable(message) {
+      scenarioLoadFailed = true;
+      scenarioDisplayConfig = null;
       if (guideTopNoteEl) {
-        guideTopNoteEl.innerHTML = `ℹ️ ${escHtml(FALLBACK_VOICE_GUIDE_TOP_NOTE)}`;
+        guideTopNoteEl.innerHTML = "";
       }
-      renderVoiceGuideSections(FALLBACK_VOICE_GUIDE_SECTIONS, FALLBACK_VOICE_END_NOTE);
+      if (guideContentEl) {
+        guideContentEl.innerHTML = `
+          <div class="guide-section">
+            <h2>Scenario unavailable</h2>
+            <p>${escHtml(message)}</p>
+          </div>
+        `;
+      }
       if (guideShellEl) {
-        guideShellEl.dataset.customerDisplayName = "Customer";
+        guideShellEl.dataset.customerDisplayName = "Scenario unavailable";
       }
+      setStatus("Scenario unavailable");
+      hintEl.textContent = message;
+      startBtn.disabled = true;
     }
 
     function applyScenarioDisplayConfig(config) {
-      if (!config || typeof config !== "object") return;
+      if (!config || typeof config !== "object") return false;
 
       scenarioDisplayConfig = config;
 
       const guideSections = config?.frontend?.voice?.guideSections;
       const endNote = String(config?.frontend?.voice?.endNote || "").trim();
-      if (Array.isArray(guideSections) && guideSections.length) {
-        renderVoiceGuideSections(guideSections, endNote || FALLBACK_VOICE_END_NOTE);
-      } else if (endNote) {
-        renderVoiceGuideSections(FALLBACK_VOICE_GUIDE_SECTIONS, endNote);
-      }
+      if (!Array.isArray(guideSections) || !guideSections.length) return false;
+
+      renderVoiceGuideSections(guideSections, endNote);
 
       if (guideShellEl) {
         guideShellEl.dataset.customerDisplayName = getVoiceCustomerDisplayName();
       }
+
+      return true;
     }
 
     function addTurn(who, text) {
@@ -1666,34 +1741,32 @@ NOTES
       setStatus("Loading scenarios...");
       hintEl.textContent = "If the scenario does not load, confirm the API URL, scenario id, and CORS settings.";
       startBtn.disabled = true;
+      scenarioLoadFailed = false;
 
       const data = await fetchJSON(SCENARIOS_URL, { method: "GET" }, 15000);
 
       if (!(data && Array.isArray(data.scenarios) && data.scenarios.length)) {
-        setStatus("Unable to load scenario.");
-        hintEl.textContent = "The simulator could not load available scenarios. Please contact your facilitator.";
-        startBtn.disabled = true;
+        renderScenarioUnavailable(`Scenario unavailable: ${ACTIVE_SCENARIO_ID} could not be confirmed from Lambda. Check the /scenarios endpoint and deployed Lambda scenario data.`);
         return;
       }
 
       populateScenarios(data.scenarios);
 
       if (!selectScenarioOrFail()) {
-        setStatus("Scenario not available.");
-        hintEl.textContent = "This simulator scenario is not currently available. Please contact your facilitator.";
-        startBtn.disabled = true;
+        renderScenarioUnavailable(`Scenario unavailable: ${ACTIVE_SCENARIO_ID} is not listed by Lambda. Check the selected scenario id.`);
         return;
       }
 
       try {
         const config = await loadScenarioDisplayConfig();
-        if (config) {
-          applyScenarioDisplayConfig(config);
-        } else {
-          console.warn("Scenario config did not load; falling back to built-in voice display content.");
+        if (!config || !applyScenarioDisplayConfig(config)) {
+          throw new Error("Scenario config missing voice display content.");
         }
-      } catch (_) {
-        console.warn("Scenario config request failed; falling back to built-in voice display content.");
+      } catch (error) {
+        const message = `Scenario unavailable: ${ACTIVE_SCENARIO_ID} could not load from Lambda. Check the /scenario endpoint and deployed Lambda scenario data.`;
+        console.error(message, error);
+        renderScenarioUnavailable(message);
+        return;
       }
 
       setStatus("Ready");
@@ -1747,6 +1820,22 @@ NOTES
       return { score_numerator: 0, score_denominator: 0 };
     }
 
+    function normalizeCriteriaResults(items) {
+      if (!Array.isArray(items)) return [];
+      return items
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const label = String(item.label || item.criterion || item.behavior || "").trim();
+          if (!label) return null;
+          return {
+            label,
+            observed: !!item.observed,
+            rationale: String(item.rationale || item.explanation || item.reason || "").trim()
+          };
+        })
+        .filter(Boolean);
+    }
+
     function learnerRatingLabel(rating) {
       if (rating === "To a Great Extent") return { text: "Strong", className: "rating-strong" };
       if (rating === "To Some Extent") return { text: "Developing", className: "rating-developing" };
@@ -1785,7 +1874,9 @@ NOTES
           evidence_turn_id: raw.evidence_turn_id ?? raw.turn_id ?? null,
           evidence_text: String(raw.evidence_text || raw.evidenceText || "").trim(),
           transcript_excerpt: String(raw.transcript_excerpt || raw.transcriptExcerpt || "").trim(),
-          behavior_summary: String(raw.behavior_summary || raw.behaviorSummary || "").trim()
+          behavior_summary: String(raw.behavior_summary || raw.behaviorSummary || "").trim(),
+          score_explanation: String(raw.score_explanation || raw.scoreExplanation || "").trim(),
+          criteria_results: normalizeCriteriaResults(raw.criteria_results || raw.criteriaResults || raw.criteria || [])
         };
       });
 
@@ -1853,24 +1944,75 @@ NOTES
       return behavior.behavior_summary || "This was a coaching moment to revisit before trying again.";
     }
 
-    function behaviorDoingWellText(behavior) {
-      if (behavior.rating === "Missed Opportunity") {
-        return "This behavior was not clearly demonstrated during the interaction.";
-      }
-      if (behavior.rating === "No Opportunity") {
-        return "The scenario did not present a clear moment to demonstrate this behavior.";
-      }
-      return behavior.behavior_summary || behavior.evidence_text || "The response showed signs of this behavior during the interaction.";
+    function defaultScoreExplanation(behavior) {
+      if (behavior.rating === "To a Great Extent") return "You demonstrated this behavior clearly and consistently enough to earn full credit.";
+      if (behavior.rating === "To Some Extent") return "You demonstrated part of this behavior, but missed one or more scenario-specific pieces needed for full credit.";
+      if (behavior.rating === "Missed Opportunity") return "This behavior had a clear opportunity in the scenario, but it was not demonstrated clearly enough to earn credit.";
+      return "This behavior was not applicable to the conversation.";
     }
 
-    function behaviorOpportunityText(behavior) {
-      if (behavior.rating === "To a Great Extent") {
-        return "Keep using this behavior with the same level of specificity and customer focus.";
-      }
+    function fallbackCriteriaResults(behavior) {
       if (behavior.rating === "No Opportunity") {
-        return "No action needed for this attempt because the behavior was not applicable.";
+        return [
+          {
+            label: "Scenario created an opportunity for this behavior",
+            observed: false,
+            rationale: "No clear opportunity appeared in this attempt."
+          }
+        ];
       }
-      return behavior.transcript_excerpt || behavior.evidence_text || behavior.behavior_summary || "Look for a moment to make this behavior more specific, timely, and connected to the customer's situation.";
+      return [
+        {
+          label: "Demonstrated the core behavior",
+          observed: behavior.score_numerator > 0,
+          rationale: behavior.behavior_summary || behavior.evidence_text || defaultScoreExplanation(behavior)
+        },
+        {
+          label: "Made the behavior specific to this customer and scenario",
+          observed: behavior.rating === "To a Great Extent",
+          rationale: behavior.rating === "To a Great Extent"
+            ? "The response was specific enough to meet the strongest rating."
+            : "Make the response more specific to the customer's issue, pet, product, and next step."
+        }
+      ];
+    }
+
+    function summaryPoints(items, fallback) {
+      const points = Array.isArray(items)
+        ? items.map((item) => String(item || "").trim()).filter(Boolean)
+        : [];
+      return points.length ? points : [fallback];
+    }
+
+    function renderSummaryPoints(items) {
+      return `<ul class="summary-points">${items.map((item) => `<li>${escHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderCriteriaResults(behavior) {
+      const criteria = behavior.criteria_results.length ? behavior.criteria_results : fallbackCriteriaResults(behavior);
+      return criteria
+        .map((item) => {
+          const className = item.observed ? "criteria-check" : "criteria-miss";
+          const icon = item.observed ? "&#10003;" : "&times;";
+          const statusText = item.observed ? "Criteria demonstrated" : "Criteria to strengthen";
+          return `<div class="criteria-item ${className}"><span class="criteria-icon" aria-hidden="true">${icon}</span><span class="criteria-copy"><em class="criteria-status">${statusText}</em><strong>${escHtml(item.label)}</strong><span>${escHtml(item.rationale || (item.observed ? "Demonstrated in the conversation." : "Not clearly demonstrated in the conversation."))}</span></span></div>`;
+        })
+        .join("");
+    }
+
+    function criteriaForBehavior(behavior) {
+      return behavior.criteria_results.length ? behavior.criteria_results : fallbackCriteriaResults(behavior);
+    }
+
+    function shouldShowCriteriaTip(behavior) {
+      if (behavior.rating === "No Opportunity") return false;
+      const criteria = criteriaForBehavior(behavior);
+      return behavior.rating !== "To a Great Extent" || criteria.some((item) => item && !item.observed);
+    }
+
+    function renderCriteriaTip(behavior) {
+      if (!shouldShowCriteriaTip(behavior)) return "";
+      return `<div class="criteria-tip"><strong>Coaching Tip</strong>To strengthen this behavior, focus on the missed criteria and make the response more complete and specific to the customer's situation.</div>`;
     }
 
     function normalizeLegacyCoaching(obj) {
@@ -1909,6 +2051,8 @@ NOTES
         const strengthen =
           String(evaluation?.what_to_strengthen_next || "").trim() ||
           (focus ? `Keep practicing ${focus.behavior_label || focus.behavior_name.replaceAll("_", " ")} so your response feels specific to the customer's situation.` : "Keep practicing clear, specific responses that match the customer's situation.");
+        const wentWellPoints = summaryPoints(evaluation?.what_went_well_points, wentWell);
+        const strengthenPoints = summaryPoints(evaluation?.what_to_strengthen_next_points, strengthen);
         const summaryText =
           String(evaluation?.summary || "").trim() ||
           `${wentWell} ${strengthen}`;
@@ -1929,8 +2073,8 @@ NOTES
         html += `<section class="report-summary"><h2>Summary</h2>`;
         html += `<div class="summary-coach-card"><div class="coach-summary-avatar"><img src="${COACH_CHEWY_IMAGE_SRC}" alt="" /></div><div class="coach-summary-notes">`;
         html += `<p>${escHtml(summaryText)}</p>`;
-        html += `<div class="coaching-note"><strong>DOING WELL</strong>${escHtml(wentWell)}</div>`;
-        html += `<div class="coaching-note"><strong>OPPORTUNITY</strong>${escHtml(strengthen)}</div>`;
+        html += `<div class="coaching-note"><strong>DOING WELL</strong>${renderSummaryPoints(wentWellPoints)}</div>`;
+        html += `<div class="coaching-note"><strong>OPPORTUNITY</strong>${renderSummaryPoints(strengthenPoints)}</div>`;
         html += `</div></div></section>`;
 
         html += `<div class="behavior-section-header"><h2 class="behavior-section-title">Customer Care Behaviors</h2>`;
@@ -1945,8 +2089,10 @@ NOTES
           html += `<span class="behavior-rating-group"><span class="rating-label"><span class="rating-dot" style="--rating-color:${ratingColor(behavior.rating)}"></span>${escHtml(behavior.rating)}</span><span class="behavior-score-ring" style="--score:${ringScore}; --ring-color:${behaviorRingColor(behavior)};" data-label="${escHtml(ringLabel)}"></span><span class="view-details">View details <span class="behavior-caret" aria-hidden="true"></span></span></span>`;
           html += `</summary>`;
           html += `<div class="behavior-detail-body">`;
-          html += `<div class="behavior-detail-note"><strong>DOING WELL</strong>${escHtml(behaviorDoingWellText(behavior))}</div>`;
-          html += `<div class="behavior-detail-note"><strong>OPPORTUNITY</strong>${escHtml(behaviorOpportunityText(behavior))}</div>`;
+          html += `<div class="criteria-score-note"><strong>What supported this rating</strong>${escHtml(behavior.score_explanation || defaultScoreExplanation(behavior))}</div>`;
+          html += `<p class="criteria-helper">These criteria explain what supported your rating. They are not a point-by-point formula; your rating reflects how completely and specifically you demonstrated this behavior in the scenario.</p>`;
+          html += `<div class="criteria-list">${renderCriteriaResults(behavior)}</div>`;
+          html += renderCriteriaTip(behavior);
           html += `</div>`;
           html += `</details>`;
         }
@@ -2184,6 +2330,8 @@ NOTES
           coachSummaryText: String(evaluation?.summary || "").trim(),
           what_went_well: String(evaluation?.what_went_well || "").trim(),
           what_to_strengthen_next: String(evaluation?.what_to_strengthen_next || "").trim(),
+          what_went_well_points: Array.isArray(evaluation?.what_went_well_points) ? evaluation.what_went_well_points : [],
+          what_to_strengthen_next_points: Array.isArray(evaluation?.what_to_strengthen_next_points) ? evaluation.what_to_strengthen_next_points : [],
           behavior_results: normalizedBehaviorResults.behaviors,
           final_score: normalizedBehaviorResults.final_score,
           total_score_numerator: normalizedBehaviorResults.total_score_numerator,
@@ -2393,6 +2541,7 @@ NOTES
     }
 
     async function start() {
+      if (scenarioLoadFailed) return;
       evaluationRetryCancelled = false;
       const ident = getAgentIdentity();
       try { STORE.setItem(AGENT_NAME_STORAGE_KEY, ident.agentName); } catch (_) { }
@@ -2672,7 +2821,6 @@ NOTES
       handleReportAction(button.dataset.reportAction);
     });
 
-    applyFallbackVoiceDisplayContent();
     renderVoiceInstructions(STATIC_VOICE_INSTRUCTIONS);
 
     loadScenarios().then(() => {
